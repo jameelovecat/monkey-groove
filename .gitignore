@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+# 编辑器
+.vscode/
+.idea/
+# 本地测试用的音频（有版权，不要提交）
+*.mp3
+*.m4a
+*.wav
+*.flac

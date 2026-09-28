@@ -1,0 +1,1484 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style></head><body>
+<title>猴子律动课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#17121f; --surface:#211a2c; --surface2:#2c2339; --line:#3a2f4b;
+  --text:#f5eef8; --muted:#aa9bba; --dim:#6f6280;
+  --kick:#ffa94d; --snare:#ff7eb3; --bass:#4fd1c5; --mel:#b99bff;
+  --display:"ZCOOL KuaiLe","Noto Sans SC",system-ui,sans-serif;
+  --body:"Noto Sans SC",system-ui,-apple-system,"PingFang SC",sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.75;padding-inline:16px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 64px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--kick);text-transform:uppercase}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(32px,5.4vw,52px);line-height:1.15;margin:6px 0 10px;text-wrap:balance}
+h2{font-family:var(--display);font-weight:400;font-size:28px;line-height:1.3;margin:0 0 14px}
+h3{margin:0;font-size:17px;font-weight:700}
+.lede{color:var(--muted);max-width:62ch;margin:0}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;margin-top:26px;align-items:start}
+@media (max-width:920px){.layout{grid-template-columns:1fr}}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.canvasbox{position:relative;width:100%;max-width:100%;aspect-ratio:16/10;background:#120d1a}
+@media (max-width:560px){.canvasbox{aspect-ratio:1/1}}
+canvas{display:block;width:100%;height:100%}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.controls .spacer{flex:1}
+.transport{display:flex;gap:6px;align-items:center}
+.transport.wide{width:100%}
+.tapbtn{flex:1}
+#prPlay{flex:0 0 auto!important;min-width:52px}
+.modeseg button{white-space:nowrap}
+.controls .plevels{width:100%;margin:0}
+.modebar{padding:0 14px 12px}
+.modeseg{display:flex;width:100%}
+.modeseg button{flex:1;padding:7px 8px}
+.ptiny{font-size:12px;color:var(--dim);margin:12px 0 0}
+@media (max-width:520px){.transport{width:100%}.transport .btn{flex:1;padding-inline:8px}}
+.bpm{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hint{font-size:12px;color:var(--dim);padding:0 14px 12px;margin:0}
+
+.btn{font:inherit;font-size:14px;background:var(--surface2);color:var(--text);border:1px solid var(--line);border-radius:999px;padding:7px 16px;cursor:pointer;line-height:1.4}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--kick);color:#2b1606;border-color:transparent;font-weight:700}
+.btn[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:transparent}
+.btn:disabled{opacity:.35;cursor:default}
+button:focus-visible{outline:2px solid var(--mel);outline-offset:2px}
+
+.gridwrap{border-top:1px solid var(--line);padding-top:12px}
+.gridlabel{padding:0 14px;margin-bottom:6px}
+.beatgrid{padding:0 14px 10px;overflow-x:auto}
+@media (hover:none){.kbd-hint{display:none}}
+canvas{cursor:pointer}
+.brow{display:grid;grid-template-columns:86px repeat(16,minmax(13px,1fr));gap:3px;align-items:center;margin-bottom:5px;min-width:330px;transition:opacity .3s}
+.brow.off{opacity:.2}
+.brow .lab{font-size:12px;color:var(--muted);white-space:nowrap;display:flex;gap:6px;align-items:baseline}
+.brow .lab b{color:var(--c);font-weight:700;font-size:14px}
+.cell{height:18px;border-radius:4px;background:#2a2236}
+.cell.q{margin-left:7px}
+@media (max-width:520px){.brow{grid-template-columns:60px repeat(16,minmax(8px,1fr));gap:2px;min-width:0}.cell.q{margin-left:4px}.brow .lab{font-size:11px;gap:4px}}
+.cell.hit{background:color-mix(in srgb,var(--c) 40%,#2a2236)}
+.cell.now{box-shadow:inset 0 0 0 1px #ffffff66}
+.cell.hit.now{background:var(--c);box-shadow:0 0 12px var(--c)}
+.brow.head .cell{background:none;height:auto;font-family:var(--mono);font-size:12px;color:var(--dim);text-align:left}
+.brow.head .cell.now{color:var(--text);box-shadow:none}
+
+.panel{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips .btn{padding:6px 13px;font-size:13px}
+
+.stepper{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.stepper button{font:inherit;font-size:13px;min-width:34px;height:34px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;padding:0 10px}
+.stepper button.done{border-color:var(--kick);color:var(--kick)}
+.stepper button[aria-current="step"]{background:var(--kick);border-color:var(--kick);color:#2b1606;font-weight:700}
+.lesson-tag{font-family:var(--mono);font-size:12px;color:var(--kick);letter-spacing:.08em}
+.lesson-title{font-family:var(--display);font-weight:400;font-size:26px;line-height:1.3;margin:2px 0 10px;text-wrap:balance}
+.lesson-body{margin:0 0 12px;color:#e3d9ea}
+.cues{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:6px}
+.cues li{position:relative;padding-left:18px;font-size:14px;color:var(--muted)}
+.cues li::before{content:"";position:absolute;left:2px;top:.72em;width:7px;height:7px;border-radius:50%;background:var(--kick)}
+.bd{margin:0;padding-top:14px;border-top:1px dashed var(--line)}
+.bdlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.bdlist button{font:inherit;font-size:14px;line-height:1.55;text-align:left;width:100%;display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start;background:transparent;border:1px solid transparent;border-radius:10px;padding:6px 8px;color:var(--muted);cursor:pointer}
+.bdlist button:hover{border-color:var(--line);color:var(--text)}
+.bdlist button.cur{background:var(--surface2);border-color:var(--mel);color:var(--text)}
+.bdlist .n{font-family:var(--mono);font-size:12px;width:22px;height:22px;border-radius:50%;border:1px solid currentColor;display:grid;place-items:center;margin-top:1px}
+.resume{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:13px;color:var(--muted);background:var(--surface2);border-radius:10px;padding:8px 12px;margin-bottom:14px}
+.linkbtn{font:inherit;font-size:13px;background:none;border:0;padding:0;color:var(--kick);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.prbtn{border-color:var(--bass);color:var(--bass)}
+.prbtn[aria-pressed="true"]{background:var(--bass);color:#10211f}
+.practice{border-top:1px solid var(--line);padding:14px}
+.plevels{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.plevels .btn{font-size:13px;padding:6px 12px}
+.plevels .btn[aria-pressed="true"]{background:var(--bass);color:#10211f}
+.ptip{margin:0 0 10px;font-size:14px;color:#e3d9ea;max-width:62ch}
+.pmsg{margin:0 0 10px;font-size:14px;color:var(--bass);font-weight:700}
+.prow{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.pstats{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.pstats b{color:var(--text);font-family:var(--mono);font-weight:500;margin-left:4px}
+.tapbtn{font-size:18px;padding:12px 24px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.tapbtn:active{transform:scale(.96)}
+@media (max-width:520px){.tapbtn{padding:16px 12px}}
+.source{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line)}
+.srclabel{margin:0}
+.srchint{font-size:12px;color:var(--dim)}
+@media (hover:none){.srchint{display:none}}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+.stage.dragging{outline:2px dashed var(--kick);outline-offset:-6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:5px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--text);color:var(--bg);font-weight:700}
+.songbar{padding:4px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.songtop{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.songtop b{font-size:15px;overflow-wrap:anywhere}
+.songprog{display:flex;align-items:center;gap:10px}
+.songprog input{flex:1;min-width:0;accent-color:var(--kick)}
+.songhelp,.songprivacy,.songstatus{margin:0;font-size:13px;color:var(--muted)}
+.songprivacy{color:var(--dim);font-size:12px}
+.songstatus{color:var(--bass)}
+.songstatus:empty{display:none}
+.songfix{display:flex;flex-wrap:wrap;gap:6px}
+.songfix .btn{font-size:12px;padding:5px 11px}
+.gridnote{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.bdbtn{border-color:var(--mel);color:var(--mel)}
+.bdbtn[aria-pressed="true"]{background:var(--mel);color:#1c1424}
+.bdhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.bdsub{font-size:13px;color:var(--dim);margin:0 0 10px}
+.bd-empty{font-size:14px;color:var(--muted)}
+.navrow{display:flex;gap:10px;justify-content:space-between}
+
+.recipe-label{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line)}
+.chips .lv{font-size:11px;opacity:.65;margin-left:5px}
+.rhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.rhead .bpm{font-size:12px}
+.rvibe{color:var(--muted);font-size:14px;margin:4px 0 12px}
+.rlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.rlist li{display:grid;grid-template-columns:52px 1fr;gap:10px;font-size:14px;line-height:1.6;transition:opacity .3s}
+.rlist li.off{opacity:.45}
+.tag{display:inline-block;text-align:center;font-size:12px;font-weight:700;border-radius:6px;padding:1px 0;color:#1c1424;background:var(--c);height:fit-content}
+.rnote{margin:14px 0 0;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px}
+
+.chant{margin-top:40px;text-align:center;padding-block:28px}
+.chant p{margin:0}
+.chant .line{font-family:var(--display);font-size:clamp(24px,4vw,40px);line-height:1.5;text-wrap:balance}
+.chant .line span:nth-child(1){color:var(--kick)}
+.chant .line span:nth-child(2){color:var(--snare)}
+.chant .line span:nth-child(3){color:var(--bass)}
+.chant .line span:nth-child(4){color:var(--mel)}
+.chant .sub{color:var(--muted);font-size:14px;margin-top:6px}
+
+.tips{margin-top:28px}
+.tipgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.tipgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.tipgrid{grid-template-columns:1fr}}
+.tip{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.tip h3{font-size:16px;margin-bottom:6px}
+.tip p{margin:0;color:var(--muted);font-size:14px}
+footer{margin-top:36px;color:var(--dim);font-size:12px;text-align:center}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">幸福的猴子 · 现场小白课</div>
+    <h1>跟着猴子，在现场动起来</h1>
+    <p class="lede">在 live house 里不敢动，大多不是因为没有节奏感，而是不知道该跟着什么动。这节课把乐队拆开，每件乐器交给身体的一个部位，一关一关解锁，最后再把它们全部忘掉。</p>
+  </header>
+
+  <div class="layout">
+    <section class="stage" aria-label="动画舞台">
+      <div class="canvasbox"><canvas id="cv" aria-label="一只小猴子随着音乐节奏舞动的动画"></canvas></div>
+      <div class="controls">
+        <div class="transport" id="rowLearn">
+          <button class="btn" id="prev" type="button" aria-label="上一关">← 上一关</button>
+          <button class="btn primary" id="play" type="button">▶ 放音乐</button>
+          <button class="btn" id="next" type="button" aria-label="下一关">下一关 →</button>
+        </div>
+        <div class="transport" id="rowBd" hidden>
+          <button class="btn" id="bdPrev" type="button">‹ 上一步</button>
+          <button class="btn primary" id="bdPause" type="button">❚❚ 停在这一步</button>
+          <button class="btn" id="bdNext" type="button">下一步 ›</button>
+        </div>
+        <div class="transport wide" id="rowPr" hidden>
+          <button class="btn" id="prPlay" type="button" aria-label="播放或暂停音乐">❚❚</button>
+          <button class="btn primary tapbtn" id="tapBtn" type="button">👆 在拍子上点我</button>
+        </div>
+        <div class="plevels" id="plevels" hidden></div>
+      </div>
+      <div class="modebar">
+        <div class="seg modeseg" role="group" aria-label="模式">
+          <button type="button" data-mode="learn" aria-pressed="true">跟着学</button>
+          <button type="button" data-mode="bd" aria-pressed="false">动作拆解</button>
+          <button type="button" data-mode="pr" aria-pressed="false">找拍子练习</button>
+        </div>
+      </div>
+      <div class="source">
+        <span class="label srclabel">音乐</span>
+        <div class="seg" role="group" aria-label="音乐来源">
+          <button type="button" id="srcSynth" aria-pressed="true">合成伴奏</button>
+          <button type="button" id="srcSong" aria-pressed="false">🎵 用我的歌</button>
+        </div>
+        <span class="label srclabel">速度</span>
+        <div class="seg" role="group" aria-label="速度">
+          <button type="button" id="spdN" aria-pressed="true">正常</button>
+          <button type="button" id="slow" aria-pressed="false">慢一点</button>
+        </div>
+        <input type="file" id="songFile" class="vh" accept="audio/*,.mp3,.m4a,.wav,.aac,.flac,.ogg">
+        <span class="srchint">也可以把歌直接拖到舞台上</span>
+      </div>
+      <div class="songbar" id="songbar" hidden>
+        <div class="songtop"><b id="songName"></b><span class="bpm" id="songBpm"></span><label for="songFile" class="linkbtn" id="songPick">换一首</label></div>
+        <div class="songprog"><input type="range" id="songSeek" min="0" max="100" step="0.1" value="0" aria-label="歌曲进度"><span class="bpm" id="songTime">0:00</span></div>
+        <p class="songhelp">猴子跳得和歌对不上？最准的办法是跟着歌拍 8 下，让它照你的来。也可以用后面几个按钮微调。</p>
+        <div class="songfix">
+          <button type="button" class="btn primary" id="calBtn" aria-pressed="false">跟着歌拍 8 下校准</button>
+          <button type="button" class="btn" data-fix="half">太快了（减半）</button>
+          <button type="button" class="btn" data-fix="x2">太慢了（加倍）</button>
+          <button type="button" class="btn" data-fix="shift">错开半拍</button>
+          <button type="button" class="btn" data-fix="early">往前一点</button>
+          <button type="button" class="btn" data-fix="late">往后一点</button>
+          <button type="button" class="btn" data-fix="reset">恢复自动</button>
+        </div>
+        <p class="songstatus" id="songStatus"></p>
+        <p class="songprivacy">歌只在你自己的浏览器里播放和分析，不会上传到任何地方。手机上要选文件里的 mp3 这类音频，音乐 App 里受保护的歌通常选不了。</p>
+      </div>
+      <div class="gridwrap" id="gridwrap">
+        <p class="label gridlabel">节奏谱 · 亮起的格子就是那一下声音，跟着它动</p>
+        <div class="beatgrid" id="grid" aria-label="节奏谱"></div>
+      </div>
+      <p class="hint" id="hint"></p>
+    </section>
+
+    <aside class="panel">
+      <div class="card" id="practiceCard" hidden>
+        <div class="lesson-tag" style="color:var(--bass)">找拍子练习</div>
+        <h2 class="lesson-title" id="pTitle"></h2>
+        <p class="lesson-body" id="ptip"></p>
+        <p class="pmsg" id="pMsg" hidden></p>
+        <div class="pstats">
+          <span>连续拍准 <b id="pStreak">0</b></span>
+          <span>最好成绩 <b id="pBest">0</b></span>
+          <span>最近八下平均偏差 <b id="pAvg">还没开始</b></span>
+        </div>
+        <p class="ptiny">点舞台任何地方、按空格，或者点舞台下面的大按钮，都算「点一下」。想换级别，用舞台下面的级别按钮。</p>
+      </div>
+      <div class="card" id="lessonCard">
+        <div class="stepper" id="stepper" aria-label="关卡"></div>
+        <div class="lesson-tag" id="lTag"></div>
+        <h2 class="lesson-title" id="lTitle"></h2>
+        <p class="lesson-body" id="lBody"></p>
+        <ul class="cues" id="lCues"></ul>
+        <div class="bd">
+          <div class="bdhead"><h3>动作拆解</h3><button class="btn bdbtn" id="bdBtn2" type="button">▶ 慢动作看一遍</button></div>
+          <p class="bdsub">猴子会停在每个关键姿势上，圈出正在动的部位。也可以直接点下面某一步。</p>
+          <ol class="bdlist" id="bdList"></ol>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="label">换一种音乐</p>
+        <div class="chips" id="genres"></div>
+        <p class="label recipe-label">这种音乐的身体配方</p>
+        <div class="rhead"><h3 id="rName"></h3><span class="bpm" id="rBpm"></span></div>
+        <p class="rvibe" id="rVibe"></p>
+        <ul class="rlist" id="rList"></ul>
+        <p class="rnote" id="rNote"></p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="chant" aria-label="口诀">
+    <p class="line"><span>咚沉</span>，<span>啪点</span>，<span>嗡晃</span>，<span>旋律交给手</span>，最后全忘掉。</p>
+    <p class="sub">下次站在人群里，只需要记住这一句。</p>
+  </section>
+
+  <section class="tips">
+    <h2>现场防尴尬小贴士</h2>
+    <div class="tipgrid">
+      <div class="tip"><h3>前奏别急，先等鼓进来</h3><p>真实现场的歌常常以吉他或人声开头，这时候没有鼓，拍子很难找。先站着听，等鼓进来再跟上。副歌通常是鼓最满、拍子最清楚的地方。</p></div>
+      <div class="tip"><h3>站进人群，别贴着墙</h3><p>越往人群里站越没人会注意你，贴墙站着反而最显眼。周围的人都在动，你的小动作会被自然地藏起来。</p></div>
+      <div class="tip"><h3>听不出拍子就看鼓手</h3><p>鼓手踩底鼓的那只脚就是「咚」，敲军鼓的那只手就是「啪」。实在看不清，就跟着前排点头的人一起点。</p></div>
+      <div class="tip"><h3>快歌跟人群，慢歌闭上眼</h3><p>快歌时跟着身边人的起伏走最安全，慢歌时闭上眼睛最不尴尬，因为你看不见别人，也就不会去想别人在看你。</p></div>
+      <div class="tip"><h3>认清舞台正前方</h3><p>朋克和金属现场，台前常有人互相冲撞（pogo、mosh）。想安静地跳就站在两侧或者中后方，想加入就先在边缘看一会儿。</p></div>
+      <div class="tip"><h3>照顾好耳朵和膝盖</h3><p>戴一副音乐耳塞几乎不影响听感，还能让你多听很多年。膝盖微微弯着比锁直站两小时轻松得多。</p></div>
+    </div>
+  </section>
+
+  <footer>幸福的猴子 · 现场律动课</footer>
+</div>
+
+<script>
+(function(){
+const parse = p => [...p].map(c => c==='x'?1 : c==='o'?0.55 : 0);
+
+const GENRES = {
+  rock:{lv:'入门',name:'独立摇滚',bpm:116,
+    k:'x...x...x...x...', sn:'....x.......x...', h:'x.x.x.x.x.x.x.x.', b:'x.x.x.x.x.x.x.x.', m:'x..x..x.x..x..x.',
+    snareType:'snare', hv:1, bassType:'pick', melType:'guitar', swing:0,
+    r:{bounce:'down',every:1,amp:14,nod:'snare',nodAmp:1,shrug:1,sway:14,period:2,arms:'wave'},
+    vibe:'live house 里最常见的声音，也最适合入门。',
+    body:['每拍沉一下，咚在哪里，膝盖就在哪里。','在第 2、4 拍的「啪」上点一下头。','一拍在左脚，一拍在右脚，来回换重心。','副歌时举起来左右摇，其他时候自然垂着就好。'],
+    note:'左边四关教的就是这一套标准版本，先把它练熟，其他曲风都是在它上面改一点点。'},
+  punk:{lv:'最快',name:'朋克',bpm:172,
+    k:'x.......x.......', sn:'....x.......x...', h:'x.x.x.x.x.x.x.x.', b:'x.x.x.x.x.x.x.x.', m:'x.x.x.x.x.x.x.x.',
+    snareType:'snare', hv:1.1, bassType:'pick', melType:'power', swing:0,
+    r:{bounce:'jump',every:2,amp:34,nod:'beat',nodAmp:1,shrug:0,sway:4,period:4,arms:'fist'},
+    vibe:'又快又吵，身体跟不上每一拍是正常的。',
+    body:['别每拍都动，每两拍原地小跳一次，落地时膝盖弯下去缓冲。','头跟着每一拍用力点。','几乎不用晃，跳起来就够了。','握拳，跳到最高点时往上举。'],
+    note:'台前常会有人互相冲撞（pogo），那是一种玩法，不是打架。不想被撞就站到两侧。'},
+  house:{lv:'中速',name:'电子 / 浩室',bpm:124,
+    k:'x...x...x...x...', sn:'....x.......x...', h:'..x...x...x...x.', b:'..x...x...x...x.', m:'...x.......x.x..',
+    snareType:'clap', hv:1.4, hatOpen:true, bassType:'synth', melType:'stab', swing:0,
+    r:{bounce:'down',every:1,amp:17,nod:'snare',nodAmp:0.6,shrug:1.3,sway:18,period:2,arms:'point'},
+    vibe:'底鼓四拍从头到尾不停，是最容易找到拍子的音乐。',
+    body:['膝盖一直跟着底鼓沉，这几乎就是电子乐的全部秘密。','拍手声落在第 2、4 拍，肩膀轻轻往上耸。','重心左右换，幅度可以比摇滚再大一点。','一只手指向天空，跟着每一拍往上戳。'],
+    note:'电子乐里「嗡」的贝斯常常落在两拍中间，所以胯会有一点反拍的感觉，跟着它晃就对了。'},
+  hiphop:{lv:'中速',name:'嘻哈',bpm:88,
+    k:'x......x..x.....', sn:'....x.......x...', h:'x.x.x.x.x.x.x.x.', b:'x......x..x.....', m:'x...............',
+    snareType:'snare', hv:0.9, bassType:'hh', melType:'ep', swing:0.18,
+    r:{bounce:'down',every:1,amp:10,nod:'beat',nodAmp:1.5,shrug:0.6,sway:9,period:2,arms:'groove',lower:8,alt:true},
+    vibe:'律动往下走，整个人要比平时坐低一点。',
+    body:['重心放低，膝盖小幅度往下沉。','这是嘻哈的主角：每一拍都往前点头，点得比别的曲风重。','跟着低音小幅度左右。','手肘微微张开，前臂跟着点头一起弹。'],
+    note:'嘻哈的底鼓不在每一拍上，所以别跟底鼓，改成跟点头走，头就是你的节拍器。'},
+  folk:{lv:'慢',name:'民谣',bpm:88,
+    k:'x.......x.......', sn:'....o.......o...', h:'oooooooooooooooo', b:'x.......x.......', m:'x.x.x.x.x.x.x.x.',
+    snareType:'rim', hv:0.5, kv:0.55, bassType:'folk', melType:'pluck', swing:0,
+    r:{bounce:'down',every:2,amp:7,nod:'beat',nodAmp:0.6,shrug:0,sway:12,period:4,arms:'clap'},
+    vibe:'安静、温柔，更适合跟着晃而不是跳。',
+    body:['不用跳，两拍轻轻屈一次膝就够了。','每一拍轻轻点头。','身体慢慢地左右晃。','在第 2、4 拍跟着拍手，这是民谣现场最自然的参与方式。'],
+    note:'拍手一定拍在 2 和 4 上。如果全场拍在了 1 和 3，那是大家一起拍错了，跟着拍就好。'},
+  postrock:{lv:'最慢',name:'后摇 / 慢歌',bpm:68,
+    k:'x...............', sn:'................', h:'................', b:'x...............', m:'x...............', arp:'x.x.x.x.x.x.x.x.',
+    snareType:'snare', hv:0, kv:0.7, bassType:'sub', melType:'pad', swing:0,
+    r:{bounce:'down',every:4,amp:9,nod:'slow',nodAmp:0,shrug:0,sway:24,period:8,arms:'float'},
+    vibe:'没有明显的鼓点，靠的是一层一层堆起来的情绪。',
+    body:['别找拍子了，找呼吸，四拍才轻轻屈一次。','没有「啪」也没关系，头慢慢歪向一边，再回来。','像水草一样，很慢、很大地晃。','手慢慢抬起又放下，等到歌曲爆发的时候再完全张开。'],
+    note:'后摇现场很多人闭着眼站着不动，这也完全可以。动与不动，都是在听。'}
+};
+Object.values(GENRES).forEach(g=>{g.K=parse(g.k);g.SN=parse(g.sn);g.H=parse(g.h);g.B=parse(g.b);g.M=parse(g.m);g.A=g.arp?parse(g.arp):null;});
+
+const LESSONS = [
+  {tag:'热身', say:'先别动，找到最低最重的那一声「咚」', short:'热', title:'先承认：我僵住了',
+   body:'站在人群里不知道手往哪儿放，这几乎是所有人第一次去现场的样子。你看，后面的人都在动，猴子也僵住了。先别急着动，这一关只做一件事：在一堆声音里找到最低、最重的那一声「咚」，它是底鼓，也是整首歌的心跳。',
+   cues:['看猴子脚下的地板：每听到一声咚，地板就会闪一下橙光','心里跟着数 1、2、3、4，数到每个数字都正好落在闪光上','找不到的话，看鼓手的右脚，或者看前排点头的人']},
+  {tag:'第 1 关 · 膝盖 × 底鼓', say:'每一声咚，膝盖往下沉一次', short:'1', title:'咚，膝盖往下沉',
+   body:'每一声咚，膝盖就轻轻往下沉一次，像踩在一张软床垫上。关键是膝盖永远不要锁直，膝盖一松，整个人就从「站着」变成了「在现场」。幅度小到别人几乎看不出来，也完全没问题。',
+   cues:['双脚分开，和肩膀差不多宽','咚的时候往下，两声之间自然弹回来','先连续做满八拍，再去想别的']},
+  {tag:'第 2 关 · 头肩 × 军鼓', say:'啪的时候，点一下头或耸一下肩', short:'2', title:'啪，点头或耸肩',
+   body:'军鼓是「啪」的那一声，大多数歌里它落在第 2 拍和第 4 拍。在啪的时候点一下头，或者耸一下肩，二选一就行。现在你身上有两个动作了：咚的时候膝盖沉，啪的时候头点。',
+   cues:['嘴里数「1、啪、3、啪」，在啪上点头','膝盖的动作不要停，两个一起做','点头幅度比你想的再小一点，会更好看']},
+  {tag:'第 3 关 · 胯 × 贝斯', say:'跟着低音，重心在两只脚之间来回换', short:'3', title:'嗡，胯左右换重心',
+   body:'贝斯是那条低低的、连成一片的声音，它负责让身体晃起来。跟着拍子把重心在两只脚之间来回换，一拍在左脚，一拍在右脚，像在两只脚之间倒水。脚不用挪，是胯在动。',
+   cues:['第 1 拍重心到一边，第 2 拍换到另一边','上半身跟着胯自然摆，不用刻意','乱了就退回只做膝盖，再慢慢加回来']},
+  {tag:'第 4 关 · 手 × 旋律', say:'手跟着旋律走，不用卡拍子', short:'4', title:'把手交给旋律',
+   body:'手是最后解锁的，也是最自由的。吉他和人声负责情绪，手就跟着情绪走：副歌可以举起来，安静的段落可以在胸前画小圈，或者只是打个响指。手不需要卡准拍子，节奏已经交给下半身了。',
+   cues:['下面的身体配方里有每种音乐的手部动作','不知道做什么，就学前排的人','手里拿着一杯饮料，也算一种手部动作']},
+  {tag:'毕业', say:'闭上眼，把前面的全部忘掉', short:'毕', title:'忘掉上面所有',
+   body:'前面四关是脚手架，现在可以拆掉了。闭上眼睛，让咚、啪、嗡和旋律自己去找身体的各个部位，动作乱一点、慢半拍都没关系。你不是在学跳舞，你只是不再拦着自己。',
+   cues:['闭上眼，跟完一整首歌','换一种音乐再试一次','下次去现场，记住那句口诀就够了']}
+];
+
+// Am – F – C – G
+const PROG = [
+  {root:55.00, tri:[220.00,261.63,329.63]},
+  {root:43.65, tri:[174.61,220.00,261.63]},
+  {root:65.41, tri:[261.63,329.63,392.00]},
+  {root:49.00, tri:[196.00,246.94,293.66]}
+];
+
+const state = {genre:'rock', lesson:0, slow:false};
+const G = () => GENRES[state.genre];
+const bpm = () => SONG.active ? SONG.bpm*SONG.rate : G().bpm * (state.slow ? 0.75 : 1);
+
+/* ---------------- audio ---------------- */
+let AC=null, master=null, dist=null, noiseBuf=null, playing=false, stepIdx=0, nextTime=0, origin=performance.now()/1000;
+const now = () => (AC && playing) ? AC.currentTime : performance.now()/1000;
+
+function initAudio(){
+  AC = new (window.AudioContext||window.webkitAudioContext)();
+  const comp = AC.createDynamicsCompressor(); comp.threshold.value=-14; comp.ratio.value=4;
+  master = AC.createGain(); master.gain.value=0.8; master.connect(comp); comp.connect(AC.destination);
+  noiseBuf = AC.createBuffer(1, AC.sampleRate*2, AC.sampleRate);
+  const d = noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  dist = AC.createWaveShaper(); const n=1024, cu=new Float32Array(n);
+  for(let i=0;i<n;i++){const x=i/n*2-1; cu[i]=Math.tanh(x*6);} dist.curve=cu;
+  const dl=AC.createBiquadFilter(); dl.type='lowpass'; dl.frequency.value=2400;
+  const dg=AC.createGain(); dg.gain.value=0.3; dist.connect(dl); dl.connect(dg); dg.connect(master);
+}
+function tone(t,f,dur,o={}){
+  const {type='triangle',v=0.1,a=0.005,cut=null,dest=master}=o;
+  const osc=AC.createOscillator(); osc.type=type; osc.frequency.value=f;
+  const g=AC.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(v,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.max(dur,a+0.02));
+  let node=osc; if(cut){const fl=AC.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=cut; osc.connect(fl); node=fl;}
+  node.connect(g); g.connect(dest); osc.start(t); osc.stop(t+dur+0.1);
+}
+function noise(t,dur,type,freq,v,Q=0.7){
+  const s=AC.createBufferSource(); s.buffer=noiseBuf;
+  const f=AC.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=Q;
+  const g=AC.createGain(); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random()*1.5); s.stop(t+dur+0.05);
+}
+function kick(t,v){
+  const o=AC.createOscillator(), g=AC.createGain(); o.type='sine';
+  o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(42,t+0.13);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.95*v,t+0.004); g.gain.exponentialRampToValueAtTime(0.0001,t+0.42);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+0.45);
+}
+function snare(t,v,type){
+  if(type==='clap'){ [0,0.011,0.022].forEach(o=>noise(t+o,0.03,'bandpass',1400,0.5*v,1.2)); noise(t+0.03,0.16,'bandpass',1400,0.45*v,1.2); }
+  else if(type==='rim'){ noise(t,0.05,'bandpass',2600,0.35*v,2); tone(t,820,0.04,{type:'sine',v:0.12*v,a:0.001}); }
+  else { noise(t,0.18,'highpass',1100,0.42*v); tone(t,185,0.11,{type:'triangle',v:0.22*v,a:0.001}); }
+}
+function hat(t,v,open){ if(v>0) noise(t,open?0.2:0.045,'highpass',7500,0.12*v); }
+function bassNote(t,ch,s,sd,g){
+  let f=ch.root*2;
+  if(g.bassType==='sub'){ tone(t,f,16*sd,{type:'sine',v:0.3,a:0.06}); tone(t,f*2,16*sd,{type:'triangle',v:0.05,a:0.4}); return; }
+  if(g.bassType==='folk'){ if(s===8) f=ch.root*3; tone(t,f,6*sd,{type:'triangle',v:0.28,a:0.005}); return; }
+  if(g.bassType==='hh'){ tone(t,f,3.2*sd,{type:'sine',v:0.38,a:0.005}); tone(t,f*2,2*sd,{type:'triangle',v:0.05}); return; }
+  tone(t,f,1.7*sd,{type:'sawtooth',v:0.16,a:0.004,cut:g.bassType==='synth'?950:650});
+}
+function melNote(t,ch,s,sd,g){
+  const T=g.melType;
+  if(T==='guitar') ch.tri.forEach((f,j)=>tone(t+j*0.008,f,2.4*sd,{type:'sawtooth',v:0.028,cut:1700}));
+  else if(T==='power') [ch.root*4,ch.root*6].forEach(f=>tone(t,f,1.8*sd,{type:'sawtooth',v:0.09,dest:dist}));
+  else if(T==='stab') ch.tri.forEach(f=>tone(t,f*2,1.2*sd,{type:'square',v:0.018,cut:2200}));
+  else if(T==='ep') ch.tri.forEach(f=>{tone(t,f,15*sd,{type:'sine',v:0.05,a:0.01}); tone(t,f*2,4*sd,{type:'sine',v:0.012});});
+  else if(T==='pluck'){ const idx=[0,1,2,1][(s/2|0)%4]; tone(t,ch.tri[idx],3*sd,{type:'triangle',v:0.09,a:0.003}); }
+  else if(T==='pad') ch.tri.forEach(f=>tone(t,f,16*sd*1.05,{type:'triangle',v:0.04,a:1.2}));
+}
+function playStep(i,t,sd){
+  const g=G(), s=i%16, ch=PROG[Math.floor(i/16)%4];
+  if(g.swing && s%2) t+=g.swing*sd;
+  const bar=Math.floor(i/16), drop=MIX.drop && bar%4===3;
+  if(!drop){
+    if(g.K[s]) kick(t,g.K[s]*(g.kv||1)*MIX.kick);
+    if(g.SN[s]) snare(t,g.SN[s]*(MIX.lead?0.6:1),g.snareType);
+    if(g.H[s]) hat(t,g.H[s]*g.hv,g.hatOpen);
+  }
+  if(MIX.lead) leadLine(t,ch,s,sd,bar);
+  if(g.B[s]) bassNote(t,ch,s,sd,g);
+  if(g.M[s]) melNote(t,ch,s,sd,g);
+  if(g.A && g.A[s]) tone(t,ch.tri[(s/2|0)%3]*2,0.7,{type:'sine',v:0.022,a:0.01});
+}
+function schedule(){
+  if(!playing || SONG.active) return;
+  const sd=60/bpm()/4;
+  while(nextTime < AC.currentTime+0.12){ playStep(stepIdx,nextTime,sd); stepIdx++; nextTime=origin+stepIdx*sd; }
+}
+setInterval(schedule,25);
+function resetClock(){
+  if(SONG.active){ lastAbs=-1; origin=(playing&&SONG.src)?SONG.T0+SONG.first/SONG.rate:performance.now()/1000; return; }
+  origin=now()+(playing?0.08:0); stepIdx=0; nextTime=origin; lastAbs=-1; }
+
+/* ---------------- canvas ---------------- */
+const cv=document.getElementById('cv'), c=cv.getContext('2d');
+let W=800,H=500,DPR=1,S=1;
+function resize(){ const r=cv.getBoundingClientRect(); DPR=Math.min(2,window.devicePixelRatio||1); W=Math.max(1,r.width); H=Math.max(1,r.height); cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); S=H/500; }
+new ResizeObserver(resize).observe(cv); resize();
+
+const BR='#8b5a3c', BR_D='#6c432c', BEIGE='#f2dcc2', HAND='#e9c8a5', INK='#2a1a12';
+const FLOOR=440;
+const LAYER_COL=['#ffa94d','#ff7eb3','#4fd1c5','#b99bff'];
+
+let rnd=7; const R01=()=>{rnd=(rnd*16807)%2147483647; return rnd/2147483647;};
+const CROWD=[...Array(20)].map((_,i)=>({u:(i+0.5)/20+(R01()-0.5)*0.03, s:0.72+R01()*0.35, ph:(R01()-0.5)*0.12, dy:R01()*18, h:[20,330,175,265,40,300][i%6], up:R01()<0.28}));
+
+let kickEnv=0, snareEnv=0, bassEnv=0, lastAbs=-1, lastT=performance.now();
+const rings=[], sparks=[], notes=[], pops=[];
+let hipXw=0, hipYw=350;
+
+function sinceHit(arr,b){ const q=b*4, i=Math.floor(q); for(let k=0;k<16;k++){ const s=((i-k)%16+16)%16; if(arr[s]) return (q-(i-k))/4; } return 99; }
+
+function onStep(abs){
+  const s=((abs%16)+16)%16, g=GP(), L=state.lesson, pt=performance.now()/1000;
+  if(BD.on){ updateGridNow(s); return; }
+  if(PR.on){ if(s%4===0 && PLV[PR.level].vis){ kickEnv=1; rings.push({t:pt,x:0}); } return; }
+  if(g.M[s]) melEnv=1;
+  if(g.K[s]){ kickEnv=1; rings.push({t:pt, x:hipXw*0.3}); if(L<=1) pops.push({txt:'咚',x:-150+(s%8?40:0),y:FLOOR-20,col:LAYER_COL[0],t:pt}); }
+  if(g.SN[s]){ snareEnv=1; if(L>=2){ const clap=L>=4&&g.r.arms==='clap'; for(let k=0;k<(clap?10:7);k++) sparks.push({t:pt,x:clap?(handW[0][0]+handW[1][0])/2:hipXw+(k%2?48:-48),y:clap?(handW[0][1]+handW[1][1])/2:hipYw-95,a:k/(clap?10:7)*Math.PI*2}); if(L===2) pops.push({txt:'啪',x:120,y:hipYw-215,col:LAYER_COL[1],t:pt}); } }
+  if(g.B[s]){ bassEnv=1; if(L===3 && s%4===0) pops.push({txt:'嗡',x:-170,y:hipYw-20,col:LAYER_COL[2],t:pt}); }
+  if(g.M[s] && L>=4){ notes.push({t:pt,x:hipXw+(Math.random()<.5?-70:70),y:hipYw-150,dx:(Math.random()-.5)*30,glyph:Math.random()<.5?'♪':'♫'}); }
+  if(state.genre==='hiphop' && L===2 && s%4===0) pops.push({txt:'点',x:120,y:hipYw-215,col:LAYER_COL[1],t:pt});
+  updateGridNow(s);
+}
+
+const SP={};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function spring(name,target,dt,k,z){
+  let s=SP[name]; if(!s){ s=SP[name]={x:target,v:0}; }
+  const cd=2*Math.sqrt(k)*z, n=Math.max(1,Math.ceil(dt/0.006)), h=dt/n;
+  for(let i=0;i<n;i++){ s.v+=(k*(target-s.x)-cd*s.v)*h; s.x+=s.v*h; }
+  return s.x;
+}
+// quick drop then settle: 0 before the hit, 1 right after, decays
+const hit=d=> d<0?0 : d<0.06? d/0.06 : Math.exp(-(d-0.06)*6);
+let melEnv=0, handW=[[0,0],[0,0]], headW=[0,0], partSide=1;
+
+function pose(b,L,R,tSec){
+  const free=L===5?1.2:1, g=GP(), bf=((b%1)+1)%1, pBeat=hit(bf);
+  const P={dip:0,jump:0,air:0,nod:0,tilt:0,shL:0,shR:0,sway:0,lean:0,sq:0,lift:[0,0],hipTilt:0,hk:170,hz:0.42,shape:['open','open']};
+  if(L===0){
+    P.dip=1.2*Math.sin(tSec*1.6);
+    P.sway=3*Math.sin(tSec*0.7)+2*Math.sin(tSec*1.9);
+    P.shL=P.shR=5; P.tilt=0.05*Math.sin(tSec*0.9);
+  }
+  if(L>=1){
+    const p=((b/R.every)%1+1)%1;
+    if(R.bounce==='jump'){
+      if(p<0.2) P.dip=16*Math.sin(Math.PI*p/0.2);
+      else { P.air=Math.sin(Math.PI*(p-0.2)/0.8); P.jump=R.amp*P.air*free; }
+    } else {
+      const x=p<0.55 ? 1-p/0.55 : (p-0.55)/0.45;   // ease out of the hit, accelerate into the next one
+      P.dip=R.amp*x*x*free;
+    }
+    P.dip+=R.lower||0;
+    P.sq=clamp(P.dip*0.0045-P.jump*0.002,-0.07,0.09);
+  }
+  if(L>=2){
+    const snD=hit(sinceHit(g.SN,b));
+    if(R.nod==='snare') P.nod=R.nodAmp*snD;
+    else if(R.nod==='beat') P.nod=R.nodAmp*pBeat;
+    if(R.nod==='slow') P.tilt=0.24*Math.sin(2*Math.PI*b/8);
+    P.shL=P.shR=R.shrug*7*snD;
+    if(R.alt){ const a=6*Math.sin(Math.PI*b); P.shL+=a; P.shR-=a; }
+  }
+  if(L>=3){
+    const cc=Math.cos(2*Math.PI*b/R.period), sh=Math.sign(cc)*Math.pow(Math.abs(cc),0.6);
+    P.sway=R.sway*sh*free; P.lean=-P.sway*0.005;
+    const ht=clamp(P.sway/(R.sway||1),-1,1);
+    P.hipTilt=ht; P.lift=[Math.max(0,ht)*6, Math.max(0,-ht)*6];
+  }
+  if(L===5){ P.lean+=0.06*Math.sin(b*Math.PI/2); P.tilt+=0.1*Math.sin(b*Math.PI/4+1); }
+  P.tilt+=-P.lean*0.5;
+
+  let hl=[-50,-10], hr=[50,-10];
+  if(L===0){ const f=Math.sin(tSec*5); hl=[-9,-38+2.5*f]; hr=[9,-38-2.5*f]; P.hk=90; }
+  else if(L<=3){
+    hl=[-50,-10-P.dip*0.2]; hr=[50,-10-P.dip*0.2]; P.hk=90; P.hz=0.35;
+    if(L===3){ hl[0]-=P.sway*0.3; hr[0]-=P.sway*0.3; }
+  } else {
+    const A=R.arms, cb=Math.cos(Math.PI*b*(R.period>2?0.5:1));
+    if(A==='wave'){ hl=[-68+26*cb,-172]; hr=[68+26*cb,-172]; }
+    else if(A==='fist'){
+      const p=((b/2)%1+1)%1, up=p<0.2 ? -0.3*Math.sin(Math.PI*p/0.2) : Math.sin(Math.PI*(p-0.2)/0.8);
+      hr=[44+18*Math.max(0,up),-104-78*up]; hl=[-24,-102]; P.shape=['fist','fist']; P.hk=260;
+    }
+    else if(A==='point'){ hr=[40,-166-20*pBeat]; hl=[-40,-38]; P.shape=['open','point']; P.hk=240; }
+    else if(A==='groove'){ hl=[-44+6*pBeat,-60+12*pBeat]; hr=[44-6*pBeat,-60+12*pBeat]; P.shape=['fist','fist']; P.hk=220; }
+    else if(A==='clap'){
+      const q=(((b-1)/2)%1+1)%1, s=Math.pow(Math.sin(Math.PI*q),0.8), sep=5+30*s;
+      hl=[-sep,-98-6*s]; hr=[sep,-98-6*s]; P.hk=280; P.hz=0.5;
+    }
+    else if(A==='float'){
+      const lift=0.5+0.5*Math.sin(2*Math.PI*b/8-Math.PI/2), w=6*Math.sin(b*Math.PI*0.75);
+      hl=[-(50+40*lift),-12-140*lift+w]; hr=[50+40*lift,-12-140*lift-w]; P.hk=30; P.hz=0.6;
+    }
+    if(L===5){
+      hl[0]+=12*Math.cos(b*Math.PI); hl[1]+=12*Math.sin(b*Math.PI);
+      hr[0]+=12*Math.cos(b*Math.PI+2); hr[1]+=12*Math.sin(b*Math.PI+2);
+    }
+  }
+  P.hl=hl; P.hr=hr;
+  return P;
+}
+
+// springs give follow-through: head lags the hips, hands trail the body, tail swings after
+function animate(P,dt){
+  P.nod=spring('nod',P.nod,dt,320,0.35);
+  P.tilt=spring('tilt',P.tilt,dt,90,0.45);
+  P.lean=spring('lean',P.lean,dt,140,0.55);
+  P.shL=spring('shL',P.shL,dt,260,0.4); P.shR=spring('shR',P.shR,dt,260,0.4);
+  const hipX=P.sway, hipY=FLOOR-88+P.dip-P.jump;
+  const hx=spring('headX',hipX,dt,150,0.4), hy=spring('headY',hipY,dt,260,0.35);
+  P.headDX=clamp(hx-hipX,-14,14); P.headDY=clamp(hy-hipY,-14,14);
+  const px=SP._px===undefined?hipX:SP._px; SP._px=hipX;
+  const vx=(hipX-px)/Math.max(dt,1e-3);
+  P.tail=spring('tail',clamp(-vx*0.004,-0.6,0.6),dt,25,0.25);
+  P.hl=[spring('hlx',P.hl[0],dt,P.hk,P.hz),spring('hly',P.hl[1],dt,P.hk,P.hz)];
+  P.hr=[spring('hrx',P.hr[0],dt,P.hk,P.hz),spring('hry',P.hr[1],dt,P.hk,P.hz)];
+  return P;
+}
+
+function ellipse(x,y,rx,ry,col,rot=0){ c.beginPath(); c.ellipse(x,y,rx,ry,rot,0,Math.PI*2); c.fillStyle=col; c.fill(); }
+function ik(h,f,a,side){
+  const dx=f[0]-h[0], dy=f[1]-h[1], len=Math.hypot(dx,dy)||1, d=Math.min(len,2*a-0.01);
+  const off=Math.sqrt(Math.max(0,a*a-(d/2)*(d/2)));
+  const nx=-dy/len, ny=dx/len, s=(nx*side>0)?1:-1;
+  return [h[0]+dx/2+nx*off*s, h[1]+dy/2+ny*off*s];
+}
+function ikArm(s,t,a,bb,sd){
+  const dx=t[0]-s[0], dy=t[1]-s[1], len=Math.hypot(dx,dy)||1, d=clamp(len,8,a+bb-0.5), ux=dx/len, uy=dy/len;
+  const hand=[s[0]+ux*d,s[1]+uy*d];
+  const A=Math.acos(clamp((a*a+d*d-bb*bb)/(2*a*d),-1,1));
+  const r=ang=>[s[0]+a*(ux*Math.cos(ang)-uy*Math.sin(ang)), s[1]+a*(ux*Math.sin(ang)+uy*Math.cos(ang))];
+  const e1=r(A), e2=r(-A);
+  return {el:(e1[0]*sd>e2[0]*sd)?e1:e2, hand};
+}
+
+function drawHead(L,tSec,P){
+  [-1,1].forEach(sd=>{ ellipse(sd*58,-4,20,20,BR); ellipse(sd*58,-4,11.5,11.5,BEIGE); });
+  const hg=c.createRadialGradient(-18,-24,8,0,0,62); hg.addColorStop(0,'#9c6a49'); hg.addColorStop(1,BR);
+  c.beginPath(); c.arc(0,0,58,0,Math.PI*2); c.fillStyle=hg; c.fill();
+  c.fillStyle=BR; c.beginPath(); c.moveTo(-12,-52); c.quadraticCurveTo(-6,-76,6,-68); c.quadraticCurveTo(-2,-62,10,-54); c.closePath(); c.fill();
+  ellipse(-19,-6,25,25,BEIGE); ellipse(19,-6,25,25,BEIGE); ellipse(0,17,40,27,BEIGE);
+  c.globalAlpha=0.55; ellipse(-35,17,9,6,'#f29d9d'); ellipse(35,17,9,6,'#f29d9d'); c.globalAlpha=1;
+  c.lineCap='round';
+  const blink = L!==5 && L!==6 && (tSec % (L===0?2.1:3.6)) < 0.11;
+  if(L===5||L===6){
+    c.strokeStyle=INK; c.lineWidth=3.2;
+    [-19,19].forEach(x=>{ c.beginPath(); c.arc(x,-2,7,Math.PI*1.1,Math.PI*1.9); c.stroke(); });
+  } else if(blink){
+    c.strokeStyle=INK; c.lineWidth=3;
+    [-19,19].forEach(x=>{ c.beginPath(); c.moveTo(x-7,-5); c.lineTo(x+7,-5); c.stroke(); });
+  } else {
+    const gx = L===0 ? 2.6*Math.sin(tSec*1.3)+1.2*Math.sin(tSec*3.7) : 0;
+    [-19,19].forEach(x=>{ ellipse(x+gx,-5,7.5,8,INK); ellipse(x+gx+2.2,-8,2.6,2.6,'#fff'); });
+  }
+  if(L===0){ c.strokeStyle=BR_D; c.lineWidth=2.6; c.beginPath(); c.moveTo(-28,-22); c.lineTo(-12,-26); c.moveTo(28,-22); c.lineTo(12,-26); c.stroke(); }
+  ellipse(-4,9,2.2,1.8,INK); ellipse(4,9,2.2,1.8,INK);
+  c.strokeStyle=INK; c.lineWidth=2.6; c.beginPath();
+  if(L===0){ c.moveTo(-9,24); c.quadraticCurveTo(-4.5,21,0,24); c.quadraticCurveTo(4.5,27,9,24); c.stroke(); }
+  else if(L===5 || (L===4 && melEnv>0.25)){
+    const o=L===5?1:melEnv;
+    c.beginPath(); c.ellipse(0,21,8+4*o,4+6*o,0,0,Math.PI*2); c.fillStyle='#c7584f'; c.fill(); c.stroke();
+  }
+  else { c.arc(0,15,11,0.15*Math.PI,0.85*Math.PI); c.stroke(); }
+  if(L===0){ const sy=-32+((tSec*14)%24); c.globalAlpha=0.9; c.fillStyle='#8fd3ff'; c.beginPath(); c.moveTo(56,sy-9); c.quadraticCurveTo(62,sy,56,sy+4); c.quadraticCurveTo(50,sy,56,sy-9); c.fill(); c.globalAlpha=1; }
+}
+
+function drawHand(h,el,shape){
+  const ang=Math.atan2(h[1]-el[1],h[0]-el[0]);
+  c.save(); c.translate(h[0],h[1]); c.rotate(ang);
+  if(shape==='open'){ ellipse(4,0,12.5,10,HAND); ellipse(-1,8,4.5,4,HAND); }
+  else {
+    ellipse(2,0,11,10.5,HAND);
+    c.strokeStyle='#c9a17e'; c.lineWidth=1.6; c.beginPath(); c.arc(2,0,7,-0.9,0.9); c.stroke();
+    if(shape==='point'){ c.fillStyle=HAND; c.beginPath(); c.roundRect(6,-3.5,20,7,3.5); c.fill(); }
+  }
+  c.restore();
+}
+
+function drawMonkey(P,L,b,tSec){
+  const hipX=P.sway, hipY=FLOOR-88+P.dip-P.jump, footY=FLOOR-P.jump, tuck=P.air*9;
+  hipXw=hipX; hipYw=hipY;
+  c.lineCap='round'; c.lineJoin='round';
+  // legs: the free side's hip drops and its heel lifts, the standing leg stays long
+  [-1,1].forEach((sd,i)=>{
+    const lift=P.lift[i], drop=(sd<0?Math.max(0,P.hipTilt):Math.max(0,-P.hipTilt))*6;
+    const h=[hipX+sd*18,hipY-4+drop], fy=footY-12-lift-tuck, f=[sd*28,fy], k=ik(h,f,42,sd);
+    c.strokeStyle=BR; c.lineWidth=24; c.beginPath(); c.moveTo(h[0],h[1]); c.lineTo(k[0],k[1]); c.lineTo(f[0],f[1]); c.stroke();
+    c.save(); c.translate(sd*32,footY-8-lift-tuck); c.rotate(-sd*lift*0.05);
+    ellipse(0,0,19,10.5-lift*0.35,BR_D); ellipse(0,-2,10,5,'#b98a66'); c.restore();
+  });
+  c.save(); c.translate(hipX,hipY); c.rotate(P.lean);
+  const topY=-100*(1-P.sq);
+  // tail swings after the hips
+  c.save(); c.translate(24,-14); c.rotate(P.tail+0.08*Math.sin(tSec*2.2));
+  c.strokeStyle=BR; c.lineWidth=9; c.beginPath(); c.moveTo(0,0);
+  c.bezierCurveTo(48,6,66,-34,48,-66); c.bezierCurveTo(36,-84,18,-68,32,-58); c.stroke(); c.restore();
+  // backpack
+  c.save(); c.translate(42,-64*(1-P.sq)); c.rotate(0.14+P.tail*0.2);
+  c.fillStyle='#a2ad62'; c.beginPath(); c.roundRect(-16,-32,40,62,12); c.fill();
+  c.fillStyle='#8a954f'; c.beginPath(); c.roundRect(-8,-4,26,24,6); c.fill();
+  c.restore();
+  // torso with squash & stretch
+  c.save(); c.scale(1+P.sq*0.7,1-P.sq);
+  ellipse(0,-44,42,52,BR); ellipse(0,-38,27,34,BEIGE);
+  c.restore();
+  const shY=[-82*(1-P.sq)-P.shL, -82*(1-P.sq)-P.shR];
+  c.strokeStyle='#44507a'; c.lineWidth=7; c.beginPath();
+  c.moveTo(-30,shY[0]-4); c.lineTo(-27,-24); c.moveTo(30,shY[1]-4); c.lineTo(27,-24); c.stroke();
+  // head lags a little behind the body
+  const hdx=P.headDX*0.8, hdy=topY-(P.shL+P.shR)*0.2+P.nod*9+P.headDY*0.6;
+  c.save(); c.translate(hdx,hdy); c.rotate(P.tilt+P.headDX*0.004); c.translate(0,-50); c.scale(1,1-P.nod*0.03);
+  drawHead(L,tSec,P); c.restore();
+  const cs=Math.cos(P.lean), sn=Math.sin(P.lean);
+  const toW=p=>[hipX+p[0]*cs-p[1]*sn, hipY+p[0]*sn+p[1]*cs];
+  headW=toW([hdx,hdy-50]);
+  // arms by 2-bone IK toward the hand targets
+  [[-1,P.hl,shY[0],P.shape[0]],[1,P.hr,shY[1],P.shape[1]]].forEach(([sd,t,sy,shape],i)=>{
+    const s=[sd*36,sy], {el,hand}=ikArm(s,t,50,46,sd);
+    c.strokeStyle=BR; c.lineWidth=17; c.beginPath(); c.moveTo(s[0],s[1]); c.lineTo(el[0],el[1]); c.lineTo(hand[0],hand[1]); c.stroke();
+    drawHand(hand,el,shape);
+    handW[i]=toW(hand);
+  });
+  c.restore();
+}
+
+/* ---------- 动作拆解 ---------- */
+function keyframes(){
+  const L=state.lesson, R=G().r;
+  if(L===0) return [
+    {b:0, t:'先别动，用耳朵找最低、最重的那一声「咚」', part:'knee'},
+    {b:1, t:'找到以后，心里跟着数 1、2、3、4', part:'head'}];
+  if(L===1){
+    if(R.bounce==='jump') return [
+      {b:0.2, t:'落地：膝盖弯下去缓冲，这一下正好踩在咚上', part:'knee', dir:'down'},
+      {b:1.2, t:'起跳：脚尖推地，离地一点点就够了', part:'knee', dir:'up'},
+      {b:1.9, t:'准备落地：膝盖先松开，别直着腿砸下去', part:'knee', dir:'down'}];
+    const e=R.every;
+    return [
+      {b:0, t:e>1?`咚：膝盖弯下去，${e} 拍才沉一次`:'咚：膝盖弯下去，身体沉到最低', part:'knee', dir:'down'},
+      {b:0.55*e, t:'两声之间：膝盖弹回来，但不要完全伸直', part:'knee', dir:'up'},
+      {b:0.85*e, t:'快到下一声咚：开始往下落，越落越快', part:'knee', dir:'down'}];
+  }
+  if(L===2){
+    if(R.nod==='slow') return [
+      {b:2, t:'头慢慢歪向一边，用两拍的时间', part:'head'},
+      {b:6, t:'再慢慢歪向另一边，像在水里', part:'head'}];
+    if(R.nod==='beat'){
+      const k=[{b:0.06, t:'每一拍：下巴往下点，膝盖同时沉', part:'head', dir:'down'},
+               {b:0.5, t:'两拍之间：头自然抬回来', part:'head', dir:'up'}];
+      if(R.alt) k.push({b:1.5, t:'肩膀跟着一高一低地交替，像在走路', part:'shoulder'});
+      return k;
+    }
+    return [
+      {b:0.7, t:'第 1 拍：头摆正，膝盖照常沉', part:'head'},
+      {b:1.06, t:'啪（第 2 拍）：下巴往下点，肩膀轻轻一耸', part:'head', dir:'down'},
+      {b:1.5, t:'头自然抬回来，等下一个啪', part:'head', dir:'up'}];
+  }
+  if(L===3){
+    const p=R.period;
+    return [
+      {b:0, t:'胯推向一边，重心压在这只脚上，另一只脚跟轻轻抬起', part:'hip', dir:'side'},
+      {b:p/4, t:'经过中间：两只脚平均站着，膝盖照常沉', part:'hip'},
+      {b:p/2, t:'换到另一边，刚才抬起的脚跟放下，另一只抬起来', part:'hip', dir:'side'},
+      {b:p/2, t:'肩膀往胯的反方向微微倾，身体会像 S 形', part:'shoulder'}];
+  }
+  if(L===4){
+    const A=R.arms;
+    if(A==='wave') return [
+      {b:0, t:'双手举过头顶，手肘别锁直', part:'hand'},
+      {b:1, t:'两只手一起跟着拍子摆向一边', part:'hand', dir:'side'},
+      {b:2, t:'再一起摆回来，身体跟着手走', part:'hand', dir:'side'}];
+    if(A==='fist') return [
+      {b:0.2, t:'落地时拳头收在胸前', part:'hand'},
+      {b:1.2, t:'跳到最高点，拳头往上冲', part:'hand', dir:'up'},
+      {b:1.9, t:'落地前收回来，准备下一次', part:'hand', dir:'down'}];
+    if(A==='point') return [
+      {b:0.5, t:'一只手举起来，食指指向天空', part:'hand'},
+      {b:0.04, t:'每一拍往上戳一下，和膝盖下沉同时发生', part:'hand', dir:'up'},
+      {b:0.5, t:'另一只手叉在腰上，手肘朝外', part:'hand2'}];
+    if(A==='groove') return [
+      {b:0.5, t:'手肘张开，拳头放松地停在胸前', part:'hand'},
+      {b:0.04, t:'点头的同时，前臂跟着往下弹一下', part:'hand', dir:'down'}];
+    if(A==='clap') return [
+      {b:0, t:'第 1 拍：双手打开，准备', part:'hand'},
+      {b:1, t:'第 2 拍：拍！', part:'hand'},
+      {b:2, t:'第 3 拍：再打开', part:'hand'},
+      {b:3, t:'第 4 拍：拍！', part:'hand'}];
+    if(A==='float') return [
+      {b:0, t:'手自然垂在身体两侧', part:'hand'},
+      {b:4, t:'用四拍的时间慢慢抬起来，手腕带着手走', part:'hand', dir:'up'},
+      {b:7, t:'再用四拍慢慢放下', part:'hand', dir:'down'}];
+  }
+  // 毕业关：把四个部位串起来复习一遍
+  const R2=R, snb=R2.nod==='slow'?2:(R2.nod==='beat'?0.06:1.06);
+  return [
+    {b:0, t:'咚：膝盖沉下去，这是一切的地基', part:'knee', dir:'down'},
+    {b:snb, t:R2.nod==='slow'?'头：跟着音乐慢慢歪':'啪：点头，和膝盖一起', part:'head', dir:R2.nod==='slow'?null:'down'},
+    {b:R2.period/2, t:'嗡：胯换到另一边，脚跟轻轻抬', part:'hip', dir:'side'},
+    {b:R2.period/2+0.5, t:'♪：手交给旋律，怎么动都可以', part:'hand'},
+    {b:R2.period, t:'现在闭上眼，让它们自己连起来', part:'head'}];
+}
+const BD={paused:false,on:false,i:0,t0:0,from:0,to:0,kfs:[]};
+const BD_TW=0.9, BD_HOLD=1.9;
+function bdReset(){
+  BD.kfs=keyframes(); BD.i=0;
+  const b0=BD.kfs.length?BD.kfs[0].b:0; BD.from=BD.to=b0; BD.t0=performance.now()/1000-BD_TW;
+  renderBreakdown();
+}
+function bdGoto(i,tNow){
+  BD.i=i; BD.from=bdBeat(tNow,true);
+  let to=BD.kfs[i].b; while(to<BD.from-0.001) to+=8; BD.to=to; BD.t0=tNow;
+  renderBreakdown();
+}
+function bdBeat(tNow,peek){
+  const ph=tNow-BD.t0;
+  if(ph<BD_TW){ const x=ph/BD_TW, e=x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2; return BD.from+(BD.to-BD.from)*e; }
+  if(!peek && !BD.paused && ph>BD_TW+BD_HOLD && BD.kfs.length>1){ bdGoto((BD.i+1)%BD.kfs.length,tNow); return BD.from; }
+  return BD.to;
+}
+function drawBreakdown(VW,tNow){
+  const kf=BD.kfs[BD.i]; if(!kf) return;
+  const ph=tNow-BD.t0, a=clamp((ph-BD_TW*0.6)/0.3,0,1);
+  let pos, col;
+  if(kf.part==='knee'){ pos=[hipXw-30,hipYw+40]; col=LAYER_COL[0]; }
+  else if(kf.part==='head'){ pos=headW; col=LAYER_COL[1]; }
+  else if(kf.part==='shoulder'){ pos=[hipXw-36,hipYw-86]; col=LAYER_COL[1]; }
+  else if(kf.part==='hip'){ pos=[hipXw,hipYw-6]; col=LAYER_COL[2]; }
+  else if(kf.part==='hand2'){ pos=handW[0]; col=LAYER_COL[3]; }
+  else { pos=handW[1]; col=LAYER_COL[3]; }
+  const r=kf.part==='head'?74:kf.part==='hip'?52:34;
+  c.save(); c.globalAlpha=a;
+  c.strokeStyle=col; c.lineWidth=3; c.setLineDash([8,7]); c.lineDashOffset=-tNow*20;
+  c.beginPath(); c.arc(pos[0],pos[1],r+3*Math.sin(tNow*5),0,Math.PI*2); c.stroke(); c.setLineDash([]);
+  // motion arrow
+  if(kf.dir){
+    const ax=pos[0]+(kf.part==='hand2'?-1:1)*(r+26), ay=pos[1];
+    c.fillStyle=col; c.beginPath();
+    if(kf.dir==='down'){ c.moveTo(ax-10,ay-6); c.lineTo(ax+10,ay-6); c.lineTo(ax,ay+10); }
+    else if(kf.dir==='up'){ c.moveTo(ax-10,ay+6); c.lineTo(ax+10,ay+6); c.lineTo(ax,ay-10); }
+    else { c.moveTo(ax-14,ay); c.lineTo(ax-4,ay-8); c.lineTo(ax-4,ay+8); c.closePath(); c.moveTo(ax+14,ay); c.lineTo(ax+4,ay-8); c.lineTo(ax+4,ay+8); }
+    c.closePath(); c.fill();
+  }
+  // caption
+  const n=BD.kfs.length, label=`${BD.i+1} / ${n}`;
+  c.font='19px "Noto Sans SC",sans-serif';
+  const maxW=Math.min(VW-48,520), words=[...kf.t], lines=[]; let cur='';
+  words.forEach(ch=>{ if(c.measureText(cur+ch).width>maxW-28){ lines.push(cur); cur=ch; } else cur+=ch; }); if(cur) lines.push(cur);
+  const bh=16+lines.length*28, by=500-bh-14;
+  c.fillStyle='rgba(18,13,26,0.86)'; c.beginPath(); c.roundRect(-maxW/2,by,maxW,bh,12); c.fill();
+  c.strokeStyle=col; c.lineWidth=1.5; c.stroke();
+  c.fillStyle='#f5eef8'; c.textAlign='center';
+  lines.forEach((l,i)=>c.fillText(l,0,by+30+i*28));
+  c.restore();
+  c.textAlign='right'; c.fillStyle='#f5eef8'; c.font='22px "ZCOOL KuaiLe","Noto Sans SC",sans-serif';
+  c.fillText('动作拆解',VW/2-28,60);
+  c.font='20px "DM Mono",monospace'; c.fillStyle=col; c.fillText(label,VW/2-28,88);
+}
+function renderBreakdown(){
+  const box=document.getElementById('bdList'); if(!box) return;
+  if(!BD.kfs.length){
+    box.innerHTML='<li class="bd-empty">这一关没有拆解，它的练习就是把前面拆开的动作全部放回身体里。</li>';
+    document.getElementById('bdBtn2').hidden=true; if(BD.on) toggleBreakdown(false); return;
+  }
+  document.getElementById('bdBtn2').hidden=false;
+  box.innerHTML=BD.kfs.map((k,i)=>`<li><button type="button" id="bd-${i}" class="${BD.on&&i===BD.i?'cur':''}"><span class="n">${i+1}</span><span>${k.t}</span></button></li>`).join('');
+  box.querySelectorAll('button').forEach((bt,i)=>bt.onclick=async()=>{ if(!BD.on) await setMode('bd'); else if(matchMedia('(max-width:920px)').matches) document.querySelector('.stage').scrollIntoView({behavior:'smooth',block:'start'}); bdGoto(i,performance.now()/1000); });
+}
+function toggleBreakdown(on){
+  if(on && PR.on) togglePractice(false);
+  BD.on=on;
+  const b2=document.getElementById('bdBtn2'); b2.setAttribute('aria-pressed',on); b2.textContent=on?'✕ 退出拆解':'▶ 慢动作看一遍';
+  if(on){ BD.paused=false; BD.resume=playing; if(playing){ if(SONG.active) songStop(); playing=false; applyMix(); } bdReset(); }
+  else { resetClock(); renderBreakdown(); if(BD.resume){ BD.resume=false; togglePlay(); } }
+  renderMode();
+}
+
+/* ---------- 找拍子练习 ---------- */
+const PLV=[
+  {name:'看着拍', short:'看着拍', vis:true, kick:1, lead:false, crowd:false, drop:false,
+   tip:'舞台右边有一个圆圈，外面还有一个大圈在慢慢缩小。大圈缩到和小圆重合、小圆闪亮的那一刻，就是一拍，也正好是鼓「咚」的那一声。在那一刻点一下：点舞台、按空格，或者点下面的按钮都行。',
+   say:'大圈缩到中间、闪亮的那一刻，点一下'},
+  {name:'只用耳朵', short:'只用耳朵', vis:false, kick:1, lead:false, crowd:false, drop:false,
+   tip:'缩小的大圈没有了，只剩你的耳朵。闭上眼，听到那一声最低、最重的「咚」就点一下。拍不准时先停下来，听两小节再开始。',
+   say:'闭上眼，听到咚就点一下'},
+  {name:'真实混音', short:'真实混音', vis:false, kick:0.4, lead:true, crowd:true, drop:false,
+   tip:'现场的人声和吉他常常比鼓还响，还有观众的嘈杂声，鼓被埋在最下面。别跟着唱的字走，唱词常常故意不落在拍子上。去找最低、最规律、一直不停的那个声音。',
+   say:'别跟唱的字走，找最低最规律的那个声音'},
+  {name:'鼓停了', short:'鼓停了', vis:false, kick:0.4, lead:true, crowd:true, drop:true,
+   tip:'很多歌在间奏或副歌前会让鼓突然停下来。鼓停了，拍子不会停：心里接着数 1、2、3、4，鼓回来的时候你应该正好拍在「1」上。',
+   say:'鼓停了也接着拍，心里数 1 2 3 4'}
+];
+const MIX={kick:1,lead:false,drop:false};
+const PR={on:false,level:0,streak:0,best:0,hist:[],last:null,passed:[false,false,false,false],msg:''};
+let crowdNode=null, tapEnv=0, dropNow=false;
+
+function crowdOn(on){
+  if(!AC) return;
+  if(on && !crowdNode){
+    const s=AC.createBufferSource(); s.buffer=noiseBuf; s.loop=true;
+    const f=AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=900; f.Q.value=0.5;
+    const g=AC.createGain(); g.gain.value=0.07;
+    const lfo=AC.createOscillator(); lfo.frequency.value=0.23; const lg=AC.createGain(); lg.gain.value=0.03;
+    lfo.connect(lg); lg.connect(g.gain);
+    s.connect(f); f.connect(g); g.connect(master); s.start(); lfo.start();
+    crowdNode={s,lfo};
+  } else if(!on && crowdNode){ try{ crowdNode.s.stop(); crowdNode.lfo.stop(); }catch(e){} crowdNode=null; }
+}
+function applyMix(){
+  const lv=PLV[PR.level];
+  if(SONG.active){ MIX.kick=1; MIX.lead=false; MIX.drop=false; crowdOn(false); return; }
+  MIX.kick=PR.on?lv.kick:1; MIX.lead=PR.on&&lv.lead; MIX.drop=PR.on&&lv.drop;
+  crowdOn(PR.on && lv.crowd && playing);
+}
+// a vocal-ish line whose syllables sit off the beat on purpose
+const LEAD=[[0,2,3],[3,1,2],[6,2,3],[9,0,2],[11,1,3],[14,2,2]];
+function leadLine(t,ch,s,sd,bar){
+  LEAD.forEach(([st,idx,len])=>{
+    if(st!==s) return;
+    const f=ch.tri[(idx+bar)%3]*2;
+    const o=AC.createOscillator(); o.type='sawtooth'; o.frequency.value=f;
+    const lfo=AC.createOscillator(); lfo.frequency.value=5.5; const lg=AC.createGain(); lg.gain.value=f*0.012; lfo.connect(lg); lg.connect(o.frequency);
+    const fl=AC.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=1900;
+    const g=AC.createGain(); const d=len*sd;
+    g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.06,t+0.03); g.gain.setValueAtTime(0.06,t+d*0.7); g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.15);
+    o.connect(fl); fl.connect(g); g.connect(master); o.start(t); lfo.start(t); o.stop(t+d+0.2); lfo.stop(t+d+0.2);
+  });
+}
+
+function setPracticeLevel(i){
+  PR.level=i; PR.streak=0; PR.hist=[]; PR.last=null; PR.msg='';
+  applyMix(); renderPractice();
+}
+async function togglePractice(on){
+  if(on===PR.on) return;
+  PR.on=on;
+  if(on){
+    if(BD.on) toggleBreakdown(false);
+    PR.streak=0; PR.hist=[]; PR.last=null; PR.msg='';
+    if(!playing) await togglePlay();
+  }
+  applyMix(); renderPractice(); renderMode();
+}
+const HINTS={
+  learn:'点舞台也能播放或暂停。<span class="kbd-hint">键盘：空格 播放/暂停，← → 切换关卡。</span>',
+  bd:'猴子会停在每个关键姿势上，点舞台看下一步。<span class="kbd-hint">键盘：空格 停住/继续，← → 上一步/下一步。</span>',
+  pr:'点舞台任何地方都算「点一下」。<span class="kbd-hint">键盘：空格 点一下。</span>'
+};
+function curMode(){ return PR.on?'pr':BD.on?'bd':'learn'; }
+function updatePlayLabels(){
+  document.getElementById('play').textContent=playing?'❚❚ 暂停音乐':'▶ 放音乐';
+  document.getElementById('prPlay').textContent=playing?'❚❚':'▶';
+}
+function renderMode(){
+  const m=curMode();
+  document.getElementById('rowLearn').hidden=m!=='learn';
+  document.getElementById('rowBd').hidden=m!=='bd';
+  document.getElementById('rowPr').hidden=m!=='pr';
+  document.getElementById('plevels').hidden=m!=='pr';
+  document.getElementById('gridwrap').hidden=m==='pr';
+  document.getElementById('lessonCard').hidden=m==='pr';
+  document.getElementById('practiceCard').hidden=m!=='pr';
+  document.querySelectorAll('.modeseg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m));
+  document.getElementById('hint').innerHTML=HINTS[m];
+  document.getElementById('bdPause').textContent=BD.paused?'▶ 继续':'❚❚ 停在这一步';
+  updatePlayLabels();
+}
+async function setMode(m){
+  if(m===curMode()) return;
+  if(m==='learn'){ if(BD.on) toggleBreakdown(false); if(PR.on) await togglePractice(false); }
+  if(m==='bd') toggleBreakdown(true);
+  if(m==='pr') await togglePractice(true);
+  const st=document.querySelector('.stage'), top=st.getBoundingClientRect().top;
+  if(top<-10 || top>window.innerHeight*0.35) st.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function bdStep(d){ if(!BD.kfs.length) return; bdGoto((BD.i+d+BD.kfs.length)%BD.kfs.length,performance.now()/1000); }
+function bdTogglePause(){ BD.paused=!BD.paused; if(!BD.paused) BD.t0=performance.now()/1000-BD_TW; renderMode(); }
+function tap(){
+  if(!PR.on) return;
+  if(!playing){ togglePlay(); return; }
+  const lat=(AC.outputLatency||0)+(AC.baseLatency||0);
+  const per=60/bpm(), t=AC.currentTime-lat-origin;
+  const ph=t/per, off=(ph-Math.round(ph))*per*1000, a=Math.abs(off);
+  const res = a<60 ? '准！' : a<110 ? (off<0?'稍微早了':'稍微晚了') : (off<0?'早了':'晚了');
+  const good=a<110;
+  PR.hist.push(off); if(PR.hist.length>8) PR.hist.shift();
+  PR.streak = good ? PR.streak+1 : 0;
+  PR.best=Math.max(PR.best,PR.streak);
+  if(PR.streak>=8 && !PR.passed[PR.level]){ PR.passed[PR.level]=true; PR.msg = PR.level<3 ? '过关！可以试试下一级了' : '全部通关！你已经能在真实现场找到拍子了'; }
+  PR.last={res,off,t:performance.now()/1000,good};
+  tapEnv=1;
+  renderPracticeStats();
+}
+function renderPractice(){
+  const box=document.getElementById('plevels');
+  if(SONG.active && PR.level>1){ PR.level=1; applyMix(); }
+  const n=SONG.active?2:4;
+  box.innerHTML=PLV.slice(0,n).map((l,i)=>`<button type="button" class="btn" id="plv-${i}" aria-pressed="${i===PR.level}">${i+1} · ${l.short}${PR.passed[i]?' ✓':''}</button>`).join('');
+  box.querySelectorAll('button').forEach((bt,i)=>bt.onclick=()=>setPracticeLevel(i));
+  document.getElementById('pTitle').textContent=`第 ${PR.level+1} 级：${PLV[PR.level].name}`;
+  document.getElementById('ptip').textContent=PLV[PR.level].tip + (SONG.active ? ' 你的歌本身就是真实混音，所以这里只有前两级。' : ' 想用真实的歌来练，可以在上面选「用我的歌」。');
+  renderPracticeStats();
+}
+function renderPracticeStats(){
+  document.getElementById('pStreak').textContent=PR.streak;
+  document.getElementById('pBest').textContent=PR.best;
+  const avg=PR.hist.length?Math.round(PR.hist.reduce((s,x)=>s+Math.abs(x),0)/PR.hist.length)+' 毫秒':'还没开始';
+  document.getElementById('pAvg').textContent=avg;
+  const m=document.getElementById('pMsg'); m.textContent=PR.msg; m.hidden=!PR.msg;
+  if(PR.msg && PR.passed[PR.level]) renderLevelsOnly();
+}
+function renderLevelsOnly(){
+  PLV.forEach((l,i)=>{ const bt=document.getElementById('plv-'+i); if(bt) bt.textContent=`${i+1} · ${l.short}${PR.passed[i]?' ✓':''}`; });
+}
+
+function drawPractice(b,dt,tSec,VW,R){
+  const lv=PLV[PR.level], pt=performance.now()/1000;
+  // quiet stage: the lights and crowd stay still so they can't give the beat away
+  c.save(); c.globalCompositeOperation='lighter';
+  for(let i=0;i<4;i++){
+    const x0=(-0.36+i*0.24)*VW, ang=Math.sin(tSec*0.2+i*1.7)*0.25;
+    c.save(); c.translate(x0,-20); c.rotate(ang);
+    const gr=c.createLinearGradient(0,0,0,520); gr.addColorStop(0,LAYER_COL[i]); gr.addColorStop(1,'transparent');
+    c.globalAlpha=0.06+(lv.vis?0.12*kickEnv:0); c.fillStyle=gr;
+    c.beginPath(); c.moveTo(-8,0); c.lineTo(8,0); c.lineTo(80,520); c.lineTo(-80,520); c.closePath(); c.fill(); c.restore();
+  }
+  c.restore();
+  const fl=c.createLinearGradient(0,FLOOR-40,0,520); fl.addColorStop(0,'#2a2036'); fl.addColorStop(1,'#1a1322');
+  c.fillStyle=fl; c.fillRect(-VW/2,FLOOR-40,VW,140);
+  drawCrowd(0.3,VW,2,{bounce:'down',every:1,period:2});
+  const spot=c.createRadialGradient(0,FLOOR,10,0,FLOOR,230); spot.addColorStop(0,'rgba(255,200,140,0.22)'); spot.addColorStop(1,'rgba(255,200,140,0)');
+  c.fillStyle=spot; c.beginPath(); c.ellipse(0,FLOOR,240,60,0,0,Math.PI*2); c.fill();
+
+  rings.length=0;
+  const mx=-Math.min(150,VW*0.22), tx=Math.min(165,VW*0.25), ty=290, TR=46;
+  // beat target: in level 1 an outer ring shrinks onto it and it flashes on the beat
+  const frac=((b%1)+1)%1, flash=lv.vis&&playing ? Math.exp(-frac*9) : 0;
+  c.save();
+  c.fillStyle='rgba(18,13,26,0.75)'; c.beginPath(); c.arc(tx,ty,TR,0,Math.PI*2); c.fill();
+  c.fillStyle=`rgba(255,169,77,${0.12+0.75*flash})`; c.beginPath(); c.arc(tx,ty,TR,0,Math.PI*2); c.fill();
+  c.strokeStyle=LAYER_COL[0]; c.lineWidth=3; c.stroke();
+  if(lv.vis && playing){
+    const ar=TR+Math.min(110,VW*0.16)*(1-frac);
+    c.globalAlpha=0.25+0.75*frac; c.lineWidth=4; c.beginPath(); c.arc(tx,ty,ar,0,Math.PI*2); c.stroke(); c.globalAlpha=1;
+    c.font='22px "DM Mono",monospace'; c.fillStyle='#f5eef8'; c.textAlign='center'; c.fillText(String((Math.floor(b)%4)+1),tx,ty+8);
+  } else {
+    c.font='18px "Noto Sans SC",sans-serif'; c.fillStyle='#f5eef8'; c.textAlign='center'; c.fillText('咚',tx,ty+7);
+  }
+  // tap ripple from the target
+  if(PR.last){ const a=(pt-PR.last.t)/0.5; if(a<1){ c.globalAlpha=1-a; c.strokeStyle=PR.last.good?LAYER_COL[2]:LAYER_COL[1]; c.lineWidth=4;
+    c.beginPath(); c.arc(tx,ty,TR+40*a,0,Math.PI*2); c.stroke(); c.globalAlpha=1; } }
+  c.restore();
+
+  // the monkey listens with a hand at its ear and nods when you tap
+  const P={dip:2,jump:0,air:0,nod:tapEnv*0.9,tilt:0.08*Math.sin(tSec*0.8),shL:0,shR:0,sway:0,lean:0,sq:0,lift:[0,0],hipTilt:0,hk:90,hz:0.4,shape:['open','open'],hl:[-50,-10],hr:[74,-150]};
+  c.save(); c.translate(mx,0); drawMonkey(animate(P,dt),6,0,tSec); c.restore();
+
+  // timing meter: early ← | → late
+  const mw=Math.min(340,VW-260), my=106;
+  c.fillStyle='rgba(255,255,255,0.07)'; c.beginPath(); c.roundRect(-mw/2,my-9,mw,18,9); c.fill();
+  const z=mw/2*(60/200); c.fillStyle='rgba(79,209,197,0.22)'; c.fillRect(-z,my-9,z*2,18);
+  c.fillStyle='#f5eef8'; c.fillRect(-1,my-13,2,26);
+  c.font='13px "Noto Sans SC",sans-serif'; c.fillStyle='#aa9bba';
+  c.textAlign='left'; c.fillText('早',-mw/2,my+30); c.textAlign='right'; c.fillText('晚',mw/2,my+30);
+  PR.hist.forEach((o,i)=>{ const x=clamp(o/200,-1,1)*mw/2; c.globalAlpha=0.25+0.75*(i+1)/PR.hist.length;
+    c.fillStyle=Math.abs(o)<110?LAYER_COL[2]:LAYER_COL[1]; c.beginPath(); c.arc(x,my,6,0,Math.PI*2); c.fill(); });
+  c.globalAlpha=1;
+
+  // last result
+  if(PR.last){ const a=clamp((pt-PR.last.t)/1.2,0,1), sc=1+0.3*Math.exp(-(pt-PR.last.t)*10);
+    c.globalAlpha=1-a*0.6; c.textAlign='center'; c.fillStyle=PR.last.good?LAYER_COL[2]:LAYER_COL[1];
+    const rx=tx; c.font=`${Math.round(30*sc)}px "ZCOOL KuaiLe","Noto Sans SC",sans-serif`; c.fillText(PR.last.res,rx,ty+TR+44);
+    c.font='14px "DM Mono",monospace'; c.fillStyle='#aa9bba'; c.fillText(`${PR.last.off>0?'+':''}${Math.round(PR.last.off)} ms`,rx,ty+TR+66);
+    c.globalAlpha=1; }
+
+  // header + streak
+  c.textAlign='left'; c.font='16px "Noto Sans SC",sans-serif'; c.fillStyle='#b99bff'; c.fillText('找拍子练习 · 第 '+(PR.level+1)+' 级',-VW/2+24,40);
+  c.font='26px "ZCOOL KuaiLe","Noto Sans SC",sans-serif'; c.fillStyle='#f5eef8'; c.fillText(lv.name,-VW/2+24,74);
+  c.textAlign='right'; c.font='52px "DM Mono",monospace'; c.fillStyle='#f5eef8'; c.fillText(String(PR.streak),VW/2-28,80);
+  c.font='14px "Noto Sans SC",sans-serif'; c.fillStyle='#aa9bba'; c.fillText('连续拍准',VW/2-28,104);
+  
+
+  // caption
+  let txt = !playing ? '▶  点舞台开始，听到咚就点一下' : (dropNow && lv.drop ? '鼓停了……心里接着数，别停' : lv.say);
+  c.save(); c.font='18px "Noto Sans SC",sans-serif';
+  const w=Math.min(VW-40,c.measureText(txt).width+44), h=40, y=500-h-14;
+  c.fillStyle=!playing?'#ffa94d':(dropNow&&lv.drop?'rgba(255,126,179,0.9)':'rgba(18,13,26,0.78)'); c.beginPath(); c.roundRect(-w/2,y,w,h,20); c.fill();
+  c.fillStyle=!playing||(dropNow&&lv.drop)?'#1c1424':'#f5eef8'; c.textAlign='center'; c.fillText(txt,0,y+26); c.restore();
+}
+
+/* ---------- 用自己的歌 ---------- */
+const SONG={active:false,buf:null,name:'',bpm:120,first:0,rate:1,T0:0,pos:0,src:null,gain:null,auto:null};
+const SONGPAT={K:parse('x...x...x...x...'),SN:parse('....x.......x...'),B:parse('x...x...x...x...'),M:parse('x.......x.......')};
+const GP=()=>SONG.active?Object.assign({},G(),SONGPAT):G();
+const CAL={on:false,taps:[]};
+
+function songPosNow(){ return playing&&SONG.src ? (AC.currentTime-SONG.T0)*SONG.rate : SONG.pos; }
+function songStart(){
+  if(!SONG.gain){ SONG.gain=AC.createGain(); SONG.gain.gain.value=0.9; SONG.gain.connect(master); }
+  const src=AC.createBufferSource(); src.buffer=SONG.buf; src.playbackRate.value=SONG.rate; src.connect(SONG.gain);
+  if(SONG.pos>=SONG.buf.duration-0.2) SONG.pos=0;
+  const at=AC.currentTime+0.03; src.start(at,SONG.pos); SONG.T0=at-SONG.pos/SONG.rate; SONG.src=src;
+  src.onended=()=>{ if(SONG.src!==src) return; SONG.src=null; SONG.pos=0; if(playing){ playing=false; updatePlayLabels(); resetClock(); } };
+}
+function songStop(){
+  if(!SONG.src) return;
+  SONG.pos=(AC.currentTime-SONG.T0)*SONG.rate;
+  const s=SONG.src; SONG.src=null; s.onended=null; try{ s.stop(); }catch(e){}
+}
+function songSeek(p){
+  SONG.pos=clamp(p,0,SONG.buf.duration-0.3);
+  if(playing){ songStop(); SONG.pos=clamp(p,0,SONG.buf.duration-0.3); songStart(); }
+  resetClock();
+}
+function songSetRate(r){
+  if(SONG.src){ const p=(AC.currentTime-SONG.T0)*SONG.rate; SONG.rate=r; SONG.src.playbackRate.value=r; SONG.T0=AC.currentTime-p/r; }
+  else SONG.rate=r;
+}
+
+// onset envelope → tempo (autocorrelation with a gentle 120 BPM prior) → fine tempo + phase (comb fit)
+async function analyzeSong(buf){
+  // plain JS filters (no OfflineAudioContext) so it works in every browser and keeps memory low
+  const sr=buf.sampleRate, n=buf.length, hop=512, fps=sr/hop, frames=Math.floor(n/hop);
+  const chans=[...Array(buf.numberOfChannels)].map((_,i)=>buf.getChannelData(i)), nc=chans.length;
+  const aL=1-Math.exp(-2*Math.PI*150/sr), aH=1-Math.exp(-2*Math.PI*1500/sr), aH2=1-Math.exp(-2*Math.PI*4500/sr);
+  let l1=0,l2=0,h1=0,h2=0;
+  const eL=new Float32Array(frames), eF=new Float32Array(frames), eM=new Float32Array(frames);
+  for(let f=0;f<frames;f++){
+    let a=0,b=0,cc=0; const o=f*hop;
+    for(let j=0;j<hop;j++){
+      let m=0; for(let k=0;k<nc;k++) m+=chans[k][o+j]; m/=nc;
+      l1+=aL*(m-l1); l2+=aL*(l1-l2);
+      h1+=aH*(m-h1); const hp=m-h1; h2+=aH2*(hp-h2);
+      a+=l2*l2; b+=m*m; cc+=h2*h2;
+    }
+    eL[f]=Math.log(1e-7+a); eF[f]=Math.log(1e-7+b); eM[f]=Math.log(1e-7+cc);
+    if((f&2047)===0) await new Promise(r=>setTimeout(r,0));
+  }
+  const onM=new Float32Array(frames);
+  for(let f=1;f<frames;f++) onM[f]=Math.max(0,eM[f]-eM[f-1]);
+  let on=new Float32Array(frames);
+  for(let f=1;f<frames;f++) on[f]=Math.max(0,eL[f]-eL[f-1])+0.5*Math.max(0,eF[f]-eF[f-1]);
+  const W=16, sm=new Float32Array(frames); let acc=0;
+  for(let f=0;f<frames;f++){ acc+=on[f]; if(f>=W) acc-=on[f-W]; sm[f]=Math.max(0,on[f]-acc/Math.min(f+1,W)); }
+  on=sm;
+  const N=Math.min(frames,fps*120|0);
+  let best=0,bestBpm=120;
+  for(let bp=60;bp<=190;bp+=0.5){
+    const lag=fps*60/bp, l0=Math.floor(lag), fr=lag-l0; let sum=0;
+    for(let i=0;i+l0+1<N;i++) sum+=on[i]*(on[i+l0]*(1-fr)+on[i+l0+1]*fr);
+    const w=Math.exp(-0.5*Math.pow(Math.log2(bp/120)/0.9,2)), sc=sum*w;
+    if(sc>best){best=sc;bestBpm=bp;}
+  }
+  const at=x=>{ const i=Math.floor(x), f=x-i; return i+1<frames ? on[i]*(1-f)+on[i+1]*f : 0; };
+  let bBest=-1,bpmF=bestBpm,phF=0;
+  for(let bp=bestBpm-1.5;bp<=bestBpm+1.5;bp+=0.02){
+    const P=fps*60/bp;
+    for(let ph=0;ph<P;ph+=0.5){ let sum=0; for(let x=ph;x<frames;x+=P) sum+=at(x); if(sum>bBest){bBest=sum;bpmF=bp;phF=ph;} }
+  }
+  // which grid beats carry the snare? pop/rock puts it on beats 2 and 4.
+  const P=fps*60/bpmF;
+  const pos=m=>{ let sum=0,cnt=0; for(let x=phF+m*P;x<frames;x+=4*P){ const i=Math.round(x); let mx=0; for(let j=-2;j<=2;j++){ const v=onM[i+j]||0; if(v>mx) mx=v; } sum+=mx; cnt++; } return cnt?sum/cnt:0; };
+  const m=[0,1,2,3].map(pos), top=m.indexOf(Math.max(...m)), oavg=(m.reduce((a,b)=>a+b,0)-m[top])/3;
+  let bpmOut=bpmF, first=phF/fps;
+  if(bpmF>110 && m[top]>1.5*oavg && m[(top+2)%4]<0.8*m[top]){
+    // snare only once every four grid beats → we locked onto double time; halve it and put the snare on beat 2
+    bpmOut=bpmF/2; first=(phF+((top+2)%4)*P)/fps;
+  } else if((m[0]+m[2])>(m[1]+m[3])*1.15){
+    first=(phF+P)/fps;   // shift one beat so the snare lands on 2 and 4
+  }
+  return {bpm:bpmOut, first};
+}
+
+async function loadSong(file){
+  const st=document.getElementById('songStatus');
+  st.textContent='正在读取「'+file.name+'」…'; showSongBar(true);
+  let buf;
+  try{
+    if(!AC) initAudio();
+    const ab=await file.arrayBuffer();
+    buf=await new Promise((res,rej)=>{ const p=AC.decodeAudioData(ab,res,rej); if(p&&p.then) p.then(res,rej); });
+  }catch(e){
+    st.textContent='这个文件读不了。换一个 mp3、m4a 或 wav 文件试试，音乐 App 里受保护的歌通常不能直接用。';
+    if(!SONG.active) showSongBar(true);
+    return;
+  }
+  let r, failed=false;
+  try{ st.textContent='正在找这首歌的拍子，几秒钟就好…'; await new Promise(r=>setTimeout(r,30)); r=await analyzeSong(buf); }
+  catch(e){ r={bpm:120,first:0}; failed=true; }
+  if(playing) await togglePlay();
+  if(SONG.src) songStop();
+  Object.assign(SONG,{active:false,buf,name:file.name.replace(/\.[^.]+$/,''),bpm:r.bpm,first:r.first,pos:0,auto:r,rate:state.slow?0.8:1});
+  setSource('song');
+  st.textContent = failed ? '没能自动找到拍子，先按 120 BPM 跳。点「跟着歌拍 8 下校准」就能对上。'
+                          : `找到了：约 ${Math.round(r.bpm)} BPM。点「▶ 放音乐」或者点舞台开始。`;
+}
+function dropSong(e){
+  e.preventDefault();
+  const f=[...(e.dataTransfer&&e.dataTransfer.files||[])].find(x=>/^audio\//.test(x.type)||/\.(mp3|m4a|wav|aac|flac|ogg)$/i.test(x.name));
+  if(f) loadSong(f);
+}
+function setSource(k){
+  if(k==='song' && !SONG.buf){ document.getElementById('songFile').click(); return; }
+  const was=playing;
+  if(playing) togglePlay();
+  SONG.active = k==='song';
+  document.getElementById('srcSynth').setAttribute('aria-pressed',!SONG.active);
+  document.getElementById('srcSong').setAttribute('aria-pressed',SONG.active);
+  showSongBar(SONG.active || !!document.getElementById('songStatus').textContent);
+  renderSongInfo(); buildGrid(); updateBpm(); renderPractice(); resetClock(); bdReset();
+  if(was && !SONG.active) togglePlay();
+}
+function showSongBar(on){ document.getElementById('songbar').hidden=!on; }
+function fmt(t){ t=Math.max(0,t); return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0'); }
+function renderSongInfo(){
+  if(!SONG.buf) return;
+  document.getElementById('songName').textContent=SONG.name;
+  document.getElementById('songBpm').textContent='约 '+Math.round(SONG.bpm)+' BPM';
+  const sk=document.getElementById('songSeek'); sk.max=SONG.buf.duration.toFixed(1);
+}
+function updateSongProgress(){
+  if(!SONG.active||!SONG.buf) return;
+  const p=songPosNow(), sk=document.getElementById('songSeek');
+  if(document.activeElement!==sk) sk.value=p.toFixed(1);
+  document.getElementById('songTime').textContent=fmt(p)+' / '+fmt(SONG.buf.duration);
+}
+function songAdjust(kind){
+  const P=60/SONG.bpm;
+  if(kind==='x2') SONG.bpm=Math.min(240,SONG.bpm*2);
+  if(kind==='half') SONG.bpm=Math.max(40,SONG.bpm/2);
+  if(kind==='early') SONG.first-=0.02;
+  if(kind==='late') SONG.first+=0.02;
+  if(kind==='shift') SONG.first+=P/2;
+  if(kind==='reset' && SONG.auto){ SONG.bpm=SONG.auto.bpm; SONG.first=SONG.auto.first; }
+  renderSongInfo(); updateBpm(); resetClock();
+}
+async function calTap(){
+  if(!SONG.active) return;
+  if(!CAL.on){ CAL.on=true; CAL.taps=[]; if(!playing) await togglePlay(); renderCal(); return; }
+  if(!playing) return;
+  const lat=(AC.outputLatency||0)+(AC.baseLatency||0);
+  CAL.taps.push((AC.currentTime-lat-SONG.T0)*SONG.rate);
+  if(CAL.taps.length>=8){
+    const t=CAL.taps, d=t.slice(1).map((x,i)=>x-t[i]).sort((a,b)=>a-b), m=d[d.length>>1];
+    if(m>0.25 && m<1.6){
+      const k=t.map(x=>Math.round((x-t[0])/m)), n=k.length, sk=k.reduce((a,b)=>a+b,0), st=t.reduce((a,b)=>a+b,0);
+      const skk=k.reduce((a,b)=>a+b*b,0), skt=k.reduce((a,b,i)=>a+b*t[i],0);
+      const P=(n*skt-sk*st)/(n*skk-sk*sk), a=(st-P*sk)/n;
+      SONG.bpm=60/P; SONG.first=a;
+      document.getElementById('songStatus').textContent='已经按你拍的校准好了：约 '+Math.round(SONG.bpm)+' BPM。';
+    } else document.getElementById('songStatus').textContent='这几下间隔差得有点多，再试一次，跟着最稳的那个声音拍。';
+    CAL.on=false; renderSongInfo(); updateBpm(); resetClock();
+  }
+  renderCal();
+}
+function renderCal(){
+  const b=document.getElementById('calBtn');
+  b.textContent = CAL.on ? `拍！（${CAL.taps.length} / 8）` : '跟着歌拍 8 下校准';
+  b.setAttribute('aria-pressed',CAL.on);
+}
+
+function drawCaption(VW,tSec){
+  const start=!playing&&!CAL.on, txt=CAL.on?`跟着歌拍，找最稳的那个声音：${CAL.taps.length} / 8`:start?'▶  点舞台放音乐，跟猴子一起动':LESSONS[state.lesson].say;
+  c.save(); c.font='18px "Noto Sans SC",sans-serif';
+  const w=Math.min(VW-40,c.measureText(txt).width+44), h=40, y=500-h-14;
+  c.globalAlpha=start?0.85+0.15*Math.sin(tSec*3):0.92;
+  c.fillStyle=start?'#ffa94d':'rgba(18,13,26,0.78)'; c.beginPath(); c.roundRect(-w/2,y,w,h,20); c.fill();
+  c.fillStyle=start?'#2b1606':'#f5eef8'; c.textAlign='center'; c.fillText(txt,0,y+26);
+  c.restore();
+}
+function drawCrowd(b,VW,L,R){
+  const sat=4+L*8, lig=18+L*2.2;
+  CROWD.forEach(p=>{
+    const x=(p.u-0.5)*VW, base=388+p.dy, ph=b+p.ph;
+    let bob;
+    if(R.bounce==='jump'){ bob=-22*Math.max(0,Math.sin(Math.PI*((ph/2)%1))); }
+    else { const per=Math.min(R.every,2); bob=6*Math.pow(0.5+0.5*Math.cos(2*Math.PI*ph/per),2); }
+    const sw=(R.period>=8?10:4)*Math.cos(2*Math.PI*ph/R.period);
+    c.save(); c.translate(x+sw,base+bob); c.scale(p.s,p.s);
+    const col=`hsl(${p.h} ${sat}% ${lig}%)`;
+    c.fillStyle=col; c.beginPath(); c.roundRect(-19,-66,38,90,16); c.fill();
+    c.beginPath(); c.arc(0,-82,15,0,Math.PI*2); c.fill();
+    if(p.up){ c.strokeStyle=col; c.lineWidth=8; c.lineCap='round'; const a=Math.sin(ph*Math.PI)*8; c.beginPath(); c.moveTo(12,-58); c.lineTo(26+a,-104); c.stroke(); }
+    c.restore();
+  });
+}
+
+function draw(b,dt,tSec){
+  const L=state.lesson, g=G(), R=g.r;
+  c.setTransform(DPR,0,0,DPR,0,0);
+  const bg=c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#110c19'); bg.addColorStop(1,'#241a31');
+  c.fillStyle=bg; c.fillRect(0,0,W,H);
+  c.translate(W/2,0); c.scale(S,S);
+  const VW=W/S;
+  if(PR.on){ drawPractice(b,dt,tSec,VW,R); return; }
+
+  // beams
+  c.save(); c.globalCompositeOperation='lighter';
+  for(let i=0;i<4;i++){
+    const on = L===0 ? (i===0?0.5:0) : (L===5 || i<L) ? 1 : 0.18;
+    const x0=(-0.36+i*0.24)*VW, ang=Math.sin(tSec*0.35+i*1.7)*0.32;
+    const col=on>0.3?LAYER_COL[i]:'#8c7fa0';
+    const a=(0.05+0.13*kickEnv)*on + 0.02;
+    c.save(); c.translate(x0,-20); c.rotate(ang);
+    const gr=c.createLinearGradient(0,0,0,520); gr.addColorStop(0,col); gr.addColorStop(1,'transparent');
+    c.globalAlpha=a; c.fillStyle=gr; c.beginPath(); c.moveTo(-8,0); c.lineTo(8,0); c.lineTo(80,520); c.lineTo(-80,520); c.closePath(); c.fill();
+    c.restore();
+  }
+  c.restore();
+
+  // floor
+  const fl=c.createLinearGradient(0,FLOOR-40,0,520); fl.addColorStop(0,'#2a2036'); fl.addColorStop(1,'#1a1322');
+  c.fillStyle=fl; c.fillRect(-VW/2,FLOOR-40,VW,140);
+  drawCrowd(b,VW,L,R);
+  const spot=c.createRadialGradient(0,FLOOR,10,0,FLOOR,230); spot.addColorStop(0,`rgba(255,200,140,${0.22+0.12*kickEnv})`); spot.addColorStop(1,'rgba(255,200,140,0)');
+  c.fillStyle=spot; c.beginPath(); c.ellipse(0,FLOOR,240,60,0,0,Math.PI*2); c.fill();
+  if(L<=1){ c.fillStyle=`rgba(255,169,77,${0.6*kickEnv})`; c.beginPath(); c.ellipse(0,FLOOR,130,24,0,0,Math.PI*2); c.fill(); }
+
+  // kick rings
+  const pt=performance.now()/1000;
+  for(let i=rings.length-1;i>=0;i--){ const r=rings[i], a=(pt-r.t)/0.6; if(a>1){rings.splice(i,1);continue;}
+    const rx=50+220*a; c.globalAlpha=(1-a)*(L<=1?0.95:0.55); c.strokeStyle=LAYER_COL[0]; c.lineWidth=L<=1?5:3;
+    c.beginPath(); c.ellipse(r.x,FLOOR,rx,rx*0.18,0,0,Math.PI*2); c.stroke(); }
+  c.globalAlpha=1;
+
+  const P=animate(pose(b,L,R,tSec),dt);
+
+  // bass wave through the hips
+  if(L>=3){
+    const y0=FLOOR-88+P.dip-P.jump;
+    c.save(); c.globalCompositeOperation='lighter';
+    for(let k=0;k<2;k++){
+      c.strokeStyle=LAYER_COL[2]; c.globalAlpha=(0.35+0.4*bassEnv)*(k?0.45:1); c.lineWidth=k?10:3;
+      c.beginPath();
+      for(let x=-VW/2;x<=VW/2;x+=8){ const amp=(5+16*bassEnv)*Math.exp(-Math.abs(x-P.sway)/260); const y=y0-30+amp*Math.sin(x*0.025-tSec*4); x===-VW/2?c.moveTo(x,y):c.lineTo(x,y); }
+      c.stroke();
+    }
+    c.restore();
+  }
+
+  drawMonkey(P,L,b,tSec);
+
+  // snare sparks
+  c.lineCap='round';
+  for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i], a=(pt-s.t)/0.35; if(a>1){sparks.splice(i,1);continue;}
+    const r0=10+30*a, r1=r0+12; c.strokeStyle=LAYER_COL[1]; c.globalAlpha=1-a; c.lineWidth=3;
+    c.beginPath(); c.moveTo(s.x+Math.cos(s.a)*r0,s.y+Math.sin(s.a)*r0); c.lineTo(s.x+Math.cos(s.a)*r1,s.y+Math.sin(s.a)*r1); c.stroke(); }
+  // notes
+  c.font='28px "Noto Sans SC",sans-serif'; c.textAlign='center';
+  for(let i=notes.length-1;i>=0;i--){ const n=notes[i], a=(pt-n.t)/1.4; if(a>1){notes.splice(i,1);continue;}
+    c.globalAlpha=1-a; c.fillStyle=LAYER_COL[3]; c.fillText(n.glyph,n.x+n.dx*a+8*Math.sin(a*8),n.y-110*a); }
+  // pops
+  for(let i=pops.length-1;i>=0;i--){ const p=pops[i], a=(pt-p.t)/0.55; if(a>1){pops.splice(i,1);continue;}
+    const sc=1+0.35*Math.exp(-a*8); c.globalAlpha=1-a*a; c.fillStyle=p.col;
+    c.font=`${Math.round(34*sc)}px "ZCOOL KuaiLe","Noto Sans SC",sans-serif`; c.fillText(p.txt,p.x,p.y-26*a); }
+  c.globalAlpha=1;
+
+  if(BD.on) drawBreakdown(VW,tSec); else drawCaption(VW,tSec);
+  // beat counter
+  if(!BD.on){
+  const beatNo=(Math.floor(b)%4)+1, pop=1+0.3*Math.exp(-(b%1)*8);
+  c.textAlign='right'; c.fillStyle='#f5eef8';
+  c.font=`${Math.round(58*pop)}px "DM Mono",monospace`; c.fillText(String(beatNo),VW/2-28,84);
+  c.font='14px "Noto Sans SC",sans-serif'; c.fillStyle='#aa9bba'; c.fillText('跟着数',VW/2-30,108);
+  }
+  // lesson tag
+  c.textAlign='left'; c.font='16px "Noto Sans SC",sans-serif'; c.fillStyle='#ffa94d';
+  c.fillText(LESSONS[L].tag,-VW/2+24,40);
+  c.font='26px "ZCOOL KuaiLe","Noto Sans SC",sans-serif'; c.fillStyle='#f5eef8';
+  c.fillText(LESSONS[L].title,-VW/2+24,74);
+  if(L===0){ c.font='18px "ZCOOL KuaiLe","Noto Sans SC",sans-serif'; c.fillStyle='#aa9bba'; c.textAlign='center'; c.fillText('（手……放哪儿？）',-120,hipYw-120); }
+}
+
+function frame(){
+  const tp=performance.now(), dt=Math.min(0.1,(tp-lastT)/1000); lastT=tp;
+  const b=BD.on ? bdBeat(tp/1000) : Math.max(0,now()-origin)*bpm()/60;
+  const abs=Math.floor(b*4);
+  if(abs!==lastAbs){ lastAbs=abs; onStep(abs); }
+  kickEnv*=Math.exp(-dt*7); snareEnv*=Math.exp(-dt*8); bassEnv*=Math.exp(-dt*5); melEnv*=Math.exp(-dt*4); tapEnv*=Math.exp(-dt*6); dropNow=MIX.drop && Math.floor(b/4)%4===3;
+  draw(b,dt,tp/1000);
+  if(SONG.active && tp-(frame.lp||0)>200){ frame.lp=tp; updateSongProgress(); }
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- DOM ---------------- */
+const ROWS=[
+  {key:'K', sym:'咚', part:'膝盖', col:'var(--kick)', need:0},
+  {key:'SN', sym:'啪', part:'头 · 肩', col:'var(--snare)', need:2},
+  {key:'B', sym:'嗡', part:'胯', col:'var(--bass)', need:3},
+  {key:'M', sym:'♪', part:'手', col:'var(--mel)', need:4}
+];
+const RECIPE_TAGS=[['膝盖','var(--kick)',1],['头肩','var(--snare)',2],['胯','var(--bass)',3],['手','var(--mel)',4]];
+let gridCells=[], headCells=[];
+
+function buildGrid(){
+  const g=G(), el=document.getElementById('grid'); el.innerHTML=''; gridCells=[];
+  const head=document.createElement('div'); head.className='brow head';
+  head.innerHTML='<span class="lab">拍子</span>'+[...Array(16)].map((_,i)=>`<span class="cell${i&&i%4===0?' q':''}">${i%4===0?(i/4+1):''}</span>`).join('');
+  el.appendChild(head); headCells=[...head.querySelectorAll('.cell')];
+  if(SONG.active){ const n=document.createElement('p'); n.className='gridnote'; n.textContent='用你的歌时只显示拍子。猴子按检测到的拍子跳，每首歌里乐器的位置都不一样，所以不画乐器行。'; el.appendChild(n); return; }
+  ROWS.forEach(r=>{
+    const row=document.createElement('div'); row.className='brow'; row.style.setProperty('--c',r.col); row.dataset.need=r.need;
+    const arr=g[r.key];
+    row.innerHTML=`<span class="lab"><b>${r.sym}</b>${r.part}</span>`+arr.map((v,i)=>`<span class="cell${v?' hit':''}${i&&i%4===0?' q':''}"></span>`).join('');
+    el.appendChild(row); gridCells.push([...row.querySelectorAll('.cell')]);
+  });
+  refreshRows();
+}
+function refreshRows(){
+  const L=state.lesson;
+  document.querySelectorAll('#grid .brow:not(.head)').forEach(r=>r.classList.toggle('off', !(L===5 || L>=+r.dataset.need)));
+}
+let curCol=-1;
+function updateGridNow(s){
+  if(s===curCol) return;
+  [headCells,...gridCells].forEach(cells=>{ if(cells[curCol]) cells[curCol].classList.remove('now'); if(cells[s]) cells[s].classList.add('now'); });
+  curCol=s;
+}
+
+function setGenre(k){ state.genre=k; renderGenres(); renderRecipe(); buildGrid(); updateBpm(); resetClock(); bdReset(); save(); }
+function renderGenres(){
+  const box=document.getElementById('genres'); box.innerHTML='';
+  Object.entries(GENRES).forEach(([k,g])=>{
+    const bt=document.createElement('button'); bt.type='button'; bt.className='btn'; bt.id='genre-'+k; bt.innerHTML=`${g.name}<span class="lv">${g.lv}</span>`;
+    bt.setAttribute('aria-pressed', k===state.genre);
+    bt.onclick=()=>setGenre(k);
+    box.appendChild(bt);
+  });
+}
+function renderRecipe(){
+  const g=G(), L=state.lesson;
+  document.getElementById('rName').textContent=g.name;
+  updateBpm();
+  document.getElementById('rVibe').textContent=g.vibe;
+  document.getElementById('rList').innerHTML=g.body.map((t,i)=>{
+    const [nm,col,need]=RECIPE_TAGS[i]; const off=!(L===5||L>=need);
+    return `<li class="${off?'off':''}"><span class="tag" style="--c:${col}">${nm}</span><span>${t}</span></li>`;
+  }).join('');
+  document.getElementById('rNote').textContent=g.note;
+}
+function renderLesson(){
+  const L=state.lesson, l=LESSONS[L];
+  const st=document.getElementById('stepper'); st.innerHTML='';
+  LESSONS.forEach((x,i)=>{
+    const bt=document.createElement('button'); bt.type='button'; bt.id='step-'+i; bt.textContent=x.short; bt.title=x.title; bt.setAttribute('aria-label',x.tag+'：'+x.title);
+    if(i<L) bt.className='done'; if(i===L) bt.setAttribute('aria-current','step');
+    bt.onclick=()=>setLesson(i); st.appendChild(bt);
+  });
+  document.getElementById('lTag').textContent=l.tag;
+  document.getElementById('lTitle').textContent=l.title;
+  document.getElementById('lBody').textContent=l.body;
+  document.getElementById('lCues').innerHTML=l.cues.map(c=>`<li>${c}</li>`).join('');
+  // 按钮永远可点：热身关没有上一关就隐藏（保留占位），毕业关的「下一步」变成换一首歌从第 1 关再练
+  const pv=document.getElementById('prev'); pv.style.visibility=L===0?'hidden':'visible';
+  const last=LESSONS.length-1, nx=document.getElementById('next');
+  const nextName=GENRES[nextGenreKey()].name;
+  nx.textContent = L===last ? '换首歌再练 ↻' : L===last-1 ? '毕业 →' : '下一关 →';
+  nx.title = L===last ? `换成「${nextName}」，从第 1 关开始` : '';
+  refreshRows(); renderRecipe();
+}
+function save(){}
+function setLesson(i){ hideResume(); state.lesson=Math.max(0,Math.min(LESSONS.length-1,i)); renderLesson(); bdReset(); save(); }
+function updateBpm(){ document.getElementById('rBpm').textContent=(SONG.active?'你的歌 · 约 ':'')+Math.round(bpm())+' BPM'+(state.slow?'（慢速）':''); }
+
+document.getElementById('prev').onclick=()=>{ hideResume(); setLesson(state.lesson-1); };
+function nextGenreKey(){ const ks=Object.keys(GENRES); return ks[(ks.indexOf(state.genre)+1)%ks.length]; }
+function goNext(){
+  hideResume();
+  if(state.lesson===LESSONS.length-1){ setGenre(nextGenreKey()); setLesson(1); }
+  else setLesson(state.lesson+1);
+}
+function hideResume(){}
+document.getElementById('next').onclick=goNext;
+async function togglePlay(){
+  const bt=document.getElementById('play');
+  if(BD.on){ BD.resume=false; toggleBreakdown(false); }
+  if(!playing){ try{ if(!AC) initAudio(); await AC.resume(); if(SONG.active) songStart(); playing=true; resetClock(); updatePlayLabels(); applyMix(); }catch(e){ bt.textContent='这个浏览器放不了声音'; } }
+  else { if(SONG.active) songStop(); playing=false; CAL.on=false; renderCal(); resetClock(); updatePlayLabels(); applyMix(); }
+}
+document.getElementById('play').onclick=togglePlay;
+cv.addEventListener('pointerdown',e=>{ if(CAL.on){ e.preventDefault(); calTap(); return; } if(PR.on){ e.preventDefault(); tap(); } });
+cv.addEventListener('click',()=>{ if(PR.on||CAL.on) return; if(BD.on) bdStep(1); else togglePlay(); });
+document.querySelectorAll('.modeseg button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.getElementById('bdPrev').onclick=()=>bdStep(-1);
+document.getElementById('bdNext').onclick=()=>bdStep(1);
+document.getElementById('bdPause').onclick=bdTogglePause;
+document.getElementById('prPlay').onclick=togglePlay;
+document.getElementById('srcSynth').onclick=()=>setSource('synth');
+document.getElementById('srcSong').onclick=()=>setSource('song');
+{ const st=document.querySelector('.stage');
+  st.addEventListener('dragover',e=>{ e.preventDefault(); st.classList.add('dragging'); });
+  st.addEventListener('dragleave',e=>{ if(!st.contains(e.relatedTarget)) st.classList.remove('dragging'); });
+  st.addEventListener('drop',e=>{ st.classList.remove('dragging'); dropSong(e); }); }
+document.getElementById('songFile').onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) loadSong(f); e.target.value=''; };
+document.getElementById('songSeek').onchange=e=>songSeek(+e.target.value);
+document.getElementById('calBtn').onclick=()=>{ if(!CAL.on) calTap(); };
+document.getElementById('calBtn').addEventListener('pointerdown',e=>{ if(CAL.on){ e.preventDefault(); calTap(); } });
+document.addEventListener('keyup',e=>{ if(e.key===' ' && (CAL.on||PR.on)) e.preventDefault(); });
+document.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>songAdjust(b.dataset.fix));
+document.getElementById('tapBtn').addEventListener('pointerdown',e=>{ e.preventDefault(); tap(); });
+document.getElementById('bdBtn2').onclick=()=>setMode(BD.on?'learn':'bd');
+function setSlow(v){ if(state.slow===v) return; state.slow=v; document.getElementById('slow').setAttribute('aria-pressed',v); document.getElementById('spdN').setAttribute('aria-pressed',!v); if(SONG.buf) songSetRate(v?0.8:1); updateBpm(); resetClock(); }
+document.getElementById('slow').onclick=()=>setSlow(true);
+document.getElementById('spdN').onclick=()=>setSlow(false);
+document.addEventListener('keydown',e=>{ if(e.target.closest('input,textarea')) return; if(e.key===' ' && (PR.on || CAL.on || !e.target.closest('button'))){ e.preventDefault(); if(e.repeat) return; if(CAL.on) calTap(); else if(PR.on) tap(); else if(BD.on) bdTogglePause(); else togglePlay(); return; }
+  if(e.key==='ArrowRight'){ if(BD.on) bdStep(1); else if(!PR.on) goNext(); }
+  if(e.key==='ArrowLeft'){ if(BD.on) bdStep(-1); else if(!PR.on) setLesson(state.lesson-1); } });
+
+try{ localStorage.removeItem('mg'); }catch(e){}
+renderGenres(); renderLesson(); buildGrid(); updateBpm(); bdReset(); renderPractice(); renderMode();
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{});
+requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
